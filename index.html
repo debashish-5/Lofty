@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LOFTY</title>
+  <meta name="description" content="LOFTY premium black landing page with split layout and cinematic video." />
+  <style>
+    :root {
+      --bg: #000000;
+      --text: #f5f5f5;
+      --muted: rgba(245,245,245,0.72);
+      --line: rgba(255,255,255,0.10);
+      --green: #31d16a;
+      --green-soft: #8ef0ad;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: Inter, Segoe UI, system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      overflow-x: hidden;
+    }
+
+    a { color: inherit; text-decoration: none; }
+    button { font: inherit; }
+    video { display: block; }
+
+    .intro {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: grid;
+      place-items: center;
+      background: #000;
+      transition: opacity 0.55s ease, transform 0.55s ease;
+    }
+
+    .intro.hidden {
+      opacity: 0;
+      pointer-events: none;
+      transform: scale(1.02);
+    }
+
+    .intro-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px 28px;
+      border-radius: 999px;
+      background: var(--green);
+      color: #050505;
+      font-weight: 900;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      box-shadow: 0 20px 60px rgba(49, 209, 106, 0.25);
+      animation: pop 1s ease both;
+    }
+
+    .intro-badge span {
+      font-size: clamp(2rem, 9vw, 5rem);
+      line-height: 1;
+    }
+
+    .intro-sub {
+      margin-top: 14px;
+      text-align: center;
+      color: rgba(255,255,255,0.62);
+      font-size: 0.96rem;
+      letter-spacing: 0.02em;
+    }
+
+    @keyframes pop {
+      0% { transform: scale(0.84); opacity: 0; }
+      65% { transform: scale(1.04); opacity: 1; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .shell {
+      width: min(1600px, calc(100% - 32px));
+      margin: 0 auto;
+    }
+
+    .nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 30;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 22px 26px;
+      background: linear-gradient(180deg, rgba(0,0,0,0.88), rgba(0,0,0,0.56));
+      backdrop-filter: blur(12px);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .brand-mark {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, var(--green), var(--green-soft));
+      color: #050505;
+      font-weight: 900;
+      flex: 0 0 auto;
+    }
+
+    .brand-text h1 {
+      margin: 0;
+      font-size: 0.98rem;
+      letter-spacing: 0.12em;
+    }
+
+    .brand-text p {
+      margin: 3px 0 0;
+      color: rgba(255,255,255,0.60);
+      font-size: 0.8rem;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .nav-links a {
+      color: rgba(255,255,255,0.78);
+      font-weight: 600;
+      font-size: 0.92rem;
+      padding: 8px 10px;
+      border-radius: 999px;
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+
+    .nav-links a:hover {
+      background: rgba(255,255,255,0.08);
+      color: #fff;
+    }
+
+    .nav-cta {
+      padding: 11px 18px;
+      border-radius: 999px;
+      background: var(--green);
+      color: #050505;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .hero {
+      min-height: 100vh;
+      padding-top: 92px;
+      display: grid;
+      place-items: center;
+    }
+
+    .hero-inner {
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 24px;
+      align-items: center;
+      padding: 34px 0 26px;
+    }
+
+    .left {
+      padding: 0 8px 0 0;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.04);
+      color: rgba(255,255,255,0.84);
+      font-size: 0.88rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    .eyebrow::before {
+      content: "";
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 0 5px rgba(49,209,106,0.12);
+    }
+
+    .hero h2 {
+      margin: 18px 0 0;
+      max-width: 12ch;
+      font-size: clamp(2.8rem, 6.5vw, 6.8rem);
+      line-height: 0.92;
+      letter-spacing: -0.06em;
+      text-transform: uppercase;
+    }
+
+    .hero h2 .accent {
+      color: var(--green-soft);
+    }
+
+    .hero p {
+      margin: 20px 0 0;
+      max-width: 56ch;
+      color: var(--muted);
+      font-size: 1.03rem;
+      line-height: 1.85;
+    }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 26px;
+    }
+
+    .btn {
+      border: none;
+      cursor: pointer;
+      border-radius: 14px;
+      padding: 14px 18px;
+      font-weight: 800;
+      transition: transform 0.15s ease, opacity 0.15s ease;
+    }
+
+    .btn:hover { transform: translateY(-1px); }
+
+    .btn.primary {
+      background: var(--green);
+      color: #050505;
+    }
+
+    .btn.ghost {
+      background: transparent;
+      color: #fff;
+      border: 1px solid var(--line);
+    }
+
+    .meta {
+      margin-top: 34px;
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+      color: rgba(255,255,255,0.70);
+      font-size: 0.9rem;
+    }
+
+    .meta span {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .meta i {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 12px rgba(49,209,106,0.7);
+      display: inline-block;
+    }
+
+    .right {
+      position: relative;
+      min-height: 72vh;
+      border-radius: 30px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: #050505;
+    }
+
+    .video-label {
+      position: absolute;
+      left: 16px;
+      top: 16px;
+      z-index: 2;
+      padding: 9px 13px;
+      border-radius: 999px;
+      background: rgba(0,0,0,0.55);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.08);
+      font-size: 0.84rem;
+      backdrop-filter: blur(10px);
+    }
+
+    .video-wrap {
+      position: absolute;
+      inset: 0;
+    }
+
+    .video-wrap video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+    }
+
+    .bottom-line {
+      margin-top: 18px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent);
+    }
+
+    @media (max-width: 1080px) {
+      .hero-inner {
+        grid-template-columns: 1fr;
+      }
+      .right {
+        min-height: 58vh;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .shell { width: min(100%, calc(100% - 18px)); }
+      .nav {
+        padding: 16px 14px;
+        flex-wrap: wrap;
+      }
+      .nav-links { gap: 8px; }
+      .hero { padding-top: 110px; }
+      .hero-inner { padding: 24px 0 18px; }
+      .hero h2 { font-size: clamp(2.6rem, 12vw, 4.6rem); max-width: none; }
+      .right { min-height: 50vh; border-radius: 22px; }
+    }
+  </style>
+</head>
+<body>
+  <div id="intro" class="intro" aria-label="Loading screen">
+    <div style="text-align:center;">
+      <div class="intro-badge"><span>LOFTY</span></div>
+      <div class="intro-sub">Premium assistant experience</div>
+    </div>
+  </div>
+
+  <header class="nav">
+    <a class="brand" href="#home">
+      <div class="brand-mark">L</div>
+      <div class="brand-text">
+        <h1>LOFTY</h1>
+        <p>Human-like AI assistant</p>
+      </div>
+    </a>
+
+    <div class="nav-links">
+      <a href="#home">Home</a>
+      <a href="#about">About</a>
+      <a href="#contact">Contact</a>
+    </div>
+
+    <a class="nav-cta" href="#home">Launch</a>
+  </header>
+
+  <main id="home" class="shell hero">
+    <div class="hero-inner">
+      <section class="left">
+        <div class="eyebrow">Solid black premium landing page</div>
+        <h2>LOFTY is <span class="accent">alive</span>.</h2>
+        <p>
+          A clean cinematic homepage inspired by premium modern landing pages — bold typography on the left,
+          your motion video on the right, and no cards or clutter.
+        </p>
+
+        <div class="actions">
+          <button class="btn primary">Start Lofty</button>
+          <button class="btn ghost">Watch Demo</button>
+        </div>
+
+        <div class="meta">
+          <span><i></i> Voice-first UI</span>
+          <span><i></i> Tool-ready backend</span>
+          <span><i></i> Green brand accent</span>
+        </div>
+      </section>
+
+      <section class="right" aria-label="Hero video">
+        <div class="video-label">Featured motion</div>
+        <div class="video-wrap">
+          <video autoplay muted loop playsinline>
+            <source src="https://framerusercontent.com/assets/Kny5Ty8J6mn9PsM1TGpXsWNtNh4.mp4" type="video/mp4" />
+          </video>
+        </div>
+      </section>
+    </div>
+
+    <div class="bottom-line"></div>
+  </main>
+
+  <section id="about" class="shell" style="padding:18px 0 42px;">
+    <div style="max-width:780px; color: rgba(255,255,255,0.72); line-height:1.8; font-size:1rem;">
+      LOFTY is designed as a premium assistant brand page with a black cinematic background and a strong motion-first hero. Keep this page minimal for the best luxury feel.
+    </div>
+  </section>
+
+  <section id="contact" class="shell" style="padding:0 0 60px;">
+    <div style="color: rgba(255,255,255,0.64); font-size:0.92rem;">
+      Ready for backend integration with Python, LangChain, LangGraph, and Ollama.
+    </div>
+  </section>
+
+  <script>
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        const intro = document.getElementById('intro');
+        intro.classList.add('hidden');
+      }, 1100);
+    });
+  </script>
+</body>
+</html>
