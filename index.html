@@ -173,13 +173,13 @@
       width: 100%;
       display: grid;
       grid-template-columns: 1.05fr 0.95fr;
-      gap: 24px;
+      gap: 32px;
       align-items: center;
-      padding: 34px 0 26px;
+      padding: 52px 0 34px;
     }
 
     .left {
-      padding: 0 8px 0 0;
+      padding: 0 8px 0 48px;
     }
 
     .eyebrow {
@@ -208,10 +208,19 @@
     .hero h2 {
       margin: 18px 0 0;
       max-width: 12ch;
-      font-size: clamp(2.8rem, 6.5vw, 6.8rem);
-      line-height: 0.92;
-      letter-spacing: -0.06em;
+      font-size: clamp(3rem, 6.8vw, 7.2rem);
+      line-height: 0.9;
+      letter-spacing: -0.07em;
       text-transform: uppercase;
+      text-wrap: balance;
+    }
+
+    .hero h2 .accent {
+      background: linear-gradient(135deg, #ffffff 0%, #d7ffd9 28%, var(--green-soft) 58%, #6ee58f 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      text-shadow: 0 0 28px rgba(49, 209, 106, 0.08);
     }
 
     .hero h2 .accent {
@@ -219,18 +228,50 @@
     }
 
     .hero p {
-      margin: 20px 0 0;
-      max-width: 56ch;
-      color: var(--muted);
-      font-size: 1.03rem;
-      line-height: 1.85;
+      margin: 22px 0 0;
+      max-width: 58ch;
+      color: rgba(255,255,255,0.70);
+      font-size: 1.05rem;
+      line-height: 1.9;
+    }
+
+    .typing-line {
+      margin-top: 18px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: clamp(1.2rem, 2.2vw, 1.65rem);
+      font-weight: 700;
+      letter-spacing: 0.01em;
+      color: #f4fff7;
+      min-height: 2.1em;
+    }
+
+    .typing-word {
+      background: linear-gradient(135deg, #ffffff 0%, #dfffe4 24%, var(--green-soft) 60%, #70e590 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .typing-cursor {
+      display: inline-block;
+      width: 1px;
+      height: 1.2em;
+      background: var(--green-soft);
+      animation: blink 1s steps(1) infinite;
+      transform: translateY(2px);
+    }
+
+    @keyframes blink {
+      50% { opacity: 0; }
     }
 
     .actions {
       display: flex;
       gap: 12px;
       flex-wrap: wrap;
-      margin-top: 26px;
+      margin-top: 30px;
     }
 
     .btn {
@@ -256,13 +297,182 @@
     }
 
     .meta {
-      margin-top: 34px;
+      margin-top: 38px;
       display: flex;
       gap: 24px;
       flex-wrap: wrap;
       color: rgba(255,255,255,0.70);
       font-size: 0.9rem;
     }
+
+    .lower-grid {
+      display: grid;
+      grid-template-columns: 0.92fr 1.08fr;
+      gap: 28px;
+      padding: 22px 0 0;
+      align-items: start;
+    }
+
+    .lower-left,
+    .lower-right {
+      min-width: 0;
+    }
+
+    .lower-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .social-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 18px 0 18px;
+      flex-wrap: wrap;
+    }
+
+    .social-row a {
+      width: 24px;
+      height: 24px;
+      display: inline-grid;
+      place-items: center;
+      color: #fff;
+      opacity: 0.9;
+      font-size: 0.95rem;
+    }
+
+    .system-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.96rem;
+      color: rgba(255,255,255,0.9);
+      margin: 2px 0 18px;
+    }
+
+    .status-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: #29d463;
+      box-shadow: 0 0 0 4px rgba(41, 212, 99, 0.12);
+    }
+
+    .link-columns {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 26px;
+      margin-top: 10px;
+    }
+
+    .link-columns h4 {
+      margin: 0 0 16px;
+      font-size: 1.01rem;
+      color: #ffffff;
+      font-weight: 700;
+    }
+
+    .link-columns a {
+      display: block;
+      color: rgba(255,255,255,0.64);
+      font-size: 0.92rem;
+      line-height: 1.6;
+      margin: 0 0 10px;
+      width: fit-content;
+    }
+
+    .link-columns a:hover { color: #ffffff; }
+
+    .tag {
+      display: inline-block;
+      margin-left: 6px;
+      padding: 2px 6px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.12);
+      font-size: 0.66rem;
+      vertical-align: middle;
+    }
+
+    .how-title {
+      font-size: clamp(2rem, 4vw, 3.3rem);
+      line-height: 1;
+      letter-spacing: -0.05em;
+      margin-top: 2px;
+      margin-bottom: 18px;
+      color: #ffffff;
+      font-weight: 800;
+    }
+
+    .how-copy {
+      color: rgba(255,255,255,0.66);
+      font-size: 1.02rem;
+      line-height: 1.8;
+      max-width: 58ch;
+      margin: 0 0 18px;
+    }
+
+    .faq-list {
+      margin-top: 18px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .faq-list details {
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      padding: 16px 0;
+    }
+
+    .faq-list summary {
+      list-style: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 1.02rem;
+      color: #ffffff;
+      font-weight: 700;
+    }
+
+    .faq-list summary::-webkit-details-marker { display: none; }
+
+    .faq-list summary::after {
+      content: "+";
+      color: rgba(255,255,255,0.84);
+      font-size: 1.25rem;
+      line-height: 1;
+      flex: 0 0 auto;
+    }
+
+    .faq-list details[open] summary::after { content: "–"; }
+
+    .faq-list details div {
+      margin-top: 10px;
+      color: rgba(255,255,255,0.62);
+      line-height: 1.8;
+      max-width: 62ch;
+    }
+
+    .footer-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      padding-top: 22px;
+      color: rgba(255,255,255,0.58);
+      flex-wrap: wrap;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 18px;
+      flex-wrap: wrap;
+    }
+
+    .footer-links a { color: rgba(255,255,255,0.58); }
+    .footer-links a:hover { color: #fff; }
 
     .meta span {
       display: inline-flex;
@@ -284,7 +494,7 @@
       min-height: 72vh;
       border-radius: 30px;
       overflow: hidden;
-      border: 1px solid rgba(255,255,255,0.08);
+      /* border: 1px solid rgba(255,255,255,0.08); */
       background: #050505;
     }
 
@@ -338,7 +548,8 @@
       .nav-links { gap: 8px; }
       .hero { padding-top: 110px; }
       .hero-inner { padding: 24px 0 18px; }
-      .hero h2 { font-size: clamp(2.6rem, 12vw, 4.6rem); max-width: none; }
+      .left { padding: 0 4px; }
+      .hero h2 { font-size: clamp(2.8rem, 13vw, 5rem); max-width: none; }
       .right { min-height: 50vh; border-radius: 22px; }
     }
   </style>
@@ -374,6 +585,9 @@
       <section class="left">
         <div class="eyebrow">Solid black premium landing page</div>
         <h2>LOFTY is <span class="accent">alive</span>.</h2>
+        <div class="typing-line" aria-label="Typing status">
+          <span class="typing-word" id="typingWord"></span><span class="typing-cursor"></span>
+        </div>
         <p>
           A clean cinematic homepage inspired by premium modern landing pages — bold typography on the left,
           your motion video on the right, and no cards or clutter.
@@ -404,24 +618,165 @@
     <div class="bottom-line"></div>
   </main>
 
-  <section id="about" class="shell" style="padding:18px 0 42px;">
-    <div style="max-width:780px; color: rgba(255,255,255,0.72); line-height:1.8; font-size:1rem;">
-      LOFTY is designed as a premium assistant brand page with a black cinematic background and a strong motion-first hero. Keep this page minimal for the best luxury feel.
-    </div>
-  </section>
+  <section class="shell" style="padding: 0 0 34px;">
+      <div style="height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.10),transparent);"></div>
+    </section>
 
-  <section id="contact" class="shell" style="padding:0 0 60px;">
-    <div style="color: rgba(255,255,255,0.64); font-size:0.92rem;">
-      Ready for backend integration with Python, LangChain, LangGraph, and Ollama.
-    </div>
-  </section>
+    <section id="about" class="shell" style="padding: 18px 0 18px;">
+      <div class="lower-grid">
+        <aside class="lower-left">
+          <div class="lower-brand">
+            <div class="brand-mark">L</div>
+            <div class="brand-text">
+              <h1>LOFTY</h1>
+              <p>Human-like AI assistant</p>
+            </div>
+          </div>
+
+          <div class="social-row" aria-label="Social links">
+            <a href="#" title="X">X</a>
+            <a href="#" title="Threads">◎</a>
+            <a href="#" title="TikTok">♪</a>
+            <a href="#" title="Instagram">◉</a>
+            <a href="#" title="LinkedIn">in</a>
+            <a href="#" title="YouTube">▶</a>
+          </div>
+
+          <div class="system-status">
+            <span class="status-dot"></span>
+            <span>All systems operational</span>
+          </div>
+
+          <div class="link-columns">
+            <div>
+              <h4>Product</h4>
+              <a href="#">AI</a>
+              <a href="#">Design</a>
+              <a href="#">Publish</a>
+              <a href="#">Collaborate</a>
+              <a href="#">Convert</a>
+              <a href="#">CMS</a>
+              <a href="#">SEO</a>
+              <a href="#">Hosting</a>
+              <a href="#">Performance</a>
+              <a href="#">Updates <span class="tag">NEW</span></a>
+            </div>
+            <div>
+              <h4>Business</h4>
+              <a href="#">Pricing</a>
+              <a href="#">Switch</a>
+            </div>
+            <div>
+              <h4>Solutions</h4>
+              <a href="#">Figma to HTML</a>
+              <a href="#">Website builder</a>
+              <a href="#">Portfolio maker</a>
+              <a href="#">Landing pages</a>
+              <a href="#">UI/UX design</a>
+              <a href="#">No-code</a>
+            </div>
+            <div>
+              <h4>Compare</h4>
+              <a href="#">Claude Code</a>
+              <a href="#">Squarespace</a>
+              <a href="#">WordPress</a>
+              <a href="#">Webflow</a>
+              <a href="#">Lovable</a>
+              <a href="#">Figma</a>
+            </div>
+          </div>
+        </aside>
+
+        <aside class="lower-right">
+          <div class="how-title">How does it work?</div>
+          <p class="how-copy">
+            We’ve built LOFTY as a seamless assistant flow where voice, typing, and tools work together.
+            The brain can connect to Ollama, LangGraph, memory, and actions while the UI stays minimal and premium.
+          </p>
+          <p class="how-copy">
+            You can place the assistant backend behind this interface, and the homepage can stay focused on the
+            brand story, the cinematic hero, and the motion-driven reveal.
+          </p>
+
+          <div class="faq-list">
+            <details open>
+              <summary>Can I get more than 1 free domain?</summary>
+              <div>This design can present one-time offers, subscriptions, or assistant upgrades per project.</div>
+            </details>
+            <details>
+              <summary>Can I get a free domain when I upgrade to monthly?</summary>
+              <div>This layout can support yearly or monthly pricing notes in the same premium style.</div>
+            </details>
+            <details>
+              <summary>What happens to my domain after 1 year?</summary>
+              <div>You can use this slot for renewal info, billing reminders, or assistant plan details.</div>
+            </details>
+            <details>
+              <summary>Can I get a refund on my site and keep my domain?</summary>
+              <div>Use this section as a feature FAQ, support FAQ, or even assistant help center content.</div>
+            </details>
+            <details>
+              <summary>Can I combine this with a discount code?</summary>
+              <div>This area is perfect for usage rules, promo terms, or product policy details.</div>
+            </details>
+            <details>
+              <summary>Where do I manage my domain?</summary>
+              <div>For LOFTY, this can become a tools/help/administration answer section.</div>
+            </details>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section id="contact" class="shell" style="padding: 0 0 60px;">
+      <div class="footer-row">
+        <div>© 2025 LOFTY. All rights reserved.</div>
+        <div class="footer-links">
+          <a href="#">Privacy</a>
+          <a href="#">Terms</a>
+          <a href="#">Contact</a>
+        </div>
+      </div>
+    </section>
 
   <script>
     window.addEventListener('load', () => {
       setTimeout(() => {
-        const intro = document.getElementById('intro');
-        intro.classList.add('hidden');
+        document.getElementById('intro').classList.add('hidden');
       }, 1100);
+
+      const words = [
+        'Typing mode on.',
+        'LOFTY is listening.',
+        'LOFTY is thinking.',
+        'LOFTY is ready.'
+      ];
+      const el = document.getElementById('typingWord');
+      let w = 0;
+      let c = 0;
+      let deleting = false;
+
+      function tick() {
+        const word = words[w];
+        if (!deleting) {
+          c++;
+          el.textContent = word.slice(0, c);
+          if (c === word.length) {
+            deleting = true;
+            setTimeout(tick, 1100);
+            return;
+          }
+        } else {
+          c--;
+          el.textContent = word.slice(0, c);
+          if (c === 0) {
+            deleting = false;
+            w = (w + 1) % words.length;
+          }
+        }
+        setTimeout(tick, deleting ? 48 : 72);
+      }
+      tick();
     });
   </script>
 </body>

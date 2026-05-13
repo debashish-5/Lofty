@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LOFTY — About</title>
+  <meta name="description" content="LOFTY about page with a minimal black layout and cinematic video showcase." />
+  <style>
+    :root {
+      --bg: #000;
+      --text: #f5f5f5;
+      --muted: rgba(245,245,245,0.72);
+      --green: #31d16a;
+      --green-soft: #8ef0ad;
+      --line: rgba(255,255,255,0.08);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, Segoe UI, system-ui, -apple-system, sans-serif;
+      overflow: hidden;
+    }
+
+    .page {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .text-side {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 8vw 5vw;
+    }
+
+    .copy {
+      max-width: 38rem;
+    }
+
+    .copy h1 {
+      margin: 0 0 22px;
+      font-size: clamp(2.8rem, 6vw, 6rem);
+      line-height: 0.94;
+      letter-spacing: -0.06em;
+      text-transform: uppercase;
+    }
+
+    .copy h1 .accent {
+      background: linear-gradient(135deg, #fff 0%, #dcffe5 22%, var(--green-soft) 58%, #69e58b 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .copy p {
+      margin: 0 0 18px;
+      font-size: 1.02rem;
+      line-height: 1.9;
+      color: var(--muted);
+      max-width: 56ch;
+    }
+
+    .video-side {
+      position: relative;
+      min-height: 100vh;
+      background: #040404;
+      overflow: hidden;
+      isolation: isolate;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02);
+      right: 80px;
+    }
+
+    .video-side::before,
+    .video-side::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .video-side::before {
+      background:
+        radial-gradient(circle at center, transparent 38%, rgba(0,0,0,0.14) 62%, rgba(0,0,0,0.80) 100%),
+        radial-gradient(circle at top left, rgba(0,0,0,0.95) 0%, transparent 38%),
+        radial-gradient(circle at top right, rgba(0,0,0,0.95) 0%, transparent 38%),
+        radial-gradient(circle at bottom left, rgba(0,0,0,0.95) 0%, transparent 38%),
+        radial-gradient(circle at bottom right, rgba(0,0,0,0.95) 0%, transparent 38%);
+    }
+
+    .video-side::after {
+      background:
+        linear-gradient(90deg, rgba(0,0,0,0.98) 0%, rgba(0,0,0,0.68) 6%, rgba(0,0,0,0.18) 16%, transparent 26%, transparent 74%, rgba(0,0,0,0.18) 84%, rgba(0,0,0,0.68) 94%, rgba(0,0,0,0.98) 100%),
+        linear-gradient(180deg, rgba(0,0,0,0.40) 0%, rgba(0,0,0,0.12) 18%, transparent 34%, transparent 66%, rgba(0,0,0,0.12) 82%, rgba(0,0,0,0.42) 100%);
+    }
+
+    .video-side::before,
+    .video-side::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .video-side::before {
+      background: radial-gradient(circle at center, transparent 34%, rgba(0,0,0,0.10) 62%, rgba(0,0,0,0.82) 100%);
+    }
+
+    .video-side::after {
+      background:
+        linear-gradient(90deg, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.34) 10%, transparent 22%, transparent 78%, rgba(0,0,0,0.34) 90%, rgba(0,0,0,0.95) 100%),
+        linear-gradient(180deg, rgba(0,0,0,0.20), rgba(0,0,0,0.28));
+      mix-blend-mode: normal;
+    }
+
+    .video-frame {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      z-index: 1;
+    }
+
+    .video-side video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center center;
+      display: block;
+      transform: scale(1.12);
+      filter: saturate(1.02) contrast(1.03) brightness(0.94);
+    }
+
+    .vignette {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at center, transparent 30%, rgba(0,0,0,0.18) 58%, rgba(0,0,0,0.82) 100%),
+        linear-gradient(180deg, rgba(0,0,0,0.10), rgba(0,0,0,0.30));
+      pointer-events: none;
+    }
+
+    @media (max-width: 980px) {
+      body { overflow: auto; }
+      .page {
+        grid-template-columns: 1fr;
+      }
+      .text-side {
+        padding: 72px 22px 24px;
+      }
+      .video-side {
+        min-height: 58vh;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .copy h1 {
+        font-size: clamp(2.4rem, 12vw, 4rem);
+      }
+      .copy p {
+        font-size: 0.98rem;
+        line-height: 1.8;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="text-side">
+      <div class="copy">
+        <h1><span class="accent">LOFTY</span> is alive.</h1>
+        <p>
+          LOFTY is a premium AI assistant project built to feel human, cinematic, and usable. It combines a bold visual identity with voice interaction, tool-based actions, memory, and a polished desktop-style experience.
+        </p>
+        <p>
+          The goal is simple: make the assistant feel present from the first frame. The design uses a deep black background, refined typography, a green brand accent, and motion-led storytelling so the experience feels modern and memorable.
+        </p>
+      </div>
+    </section>
+
+    <section class="video-side" aria-label="Project video showcase">
+      <div class="video-frame">
+        <video autoplay muted loop playsinline>
+          <source src="Final Shot Comp-Desktop.mp4" type="video/mp4" />
+        </video>
+      </div>
+      <div class="vignette"></div>
+    </section>
+  </main>
+</body>
+</html>
