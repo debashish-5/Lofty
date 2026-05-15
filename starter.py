@@ -24,6 +24,8 @@ from langgraph.graph.message import add_messages
 from langchain_ollama import ChatOllama
 from streamlit import user
 
+from lovify_assistant_split_package.assistant_app.tools import safe_workspace_path
+
 #let optional voice deps 
 try:
     import pandas as pd
@@ -170,3 +172,143 @@ class AssistantTools:
             return f"Opened {url} in the browser."
         except Exception as exc:
             return f"Failed to open {url}:{exc}"
+    
+    @tool
+    def list_files(folder:str=".") -> str:
+        """List files in a folder inside the approved workspace."""
+        target = safe_workspace_path(folder)
+        try:
+            if not target.exists():
+                return f"Folder does not exist: {target}"
+            items = []
+            for p in sorted(target.iterdir()):
+                items.append(f"{'[DIR]'if p.is_dir() else '[FILE]'} {p.name}")
+            return "\n".join(items) if items else "No files found."
+        except Exception as exc:
+            return f"Failed to list files in {folder}:{exc}"
+    @tool
+    def read_file(file_path:str) -> str:
+        """Read a file inside the approved workspace and return its contents as text."""
+        target = safe_workspace_path(file_path)
+        try:
+            if not target.exists():
+                return f"File does not exist: {target}"
+            return target.read_text(encoding="utf-8")
+        except Exception as exc:
+            return f'Failed to read file {file_path}:{exc}'
+
+    @tool
+    def write_file(file_path:str, content:str) -> str:
+        """Write text content to a file inside the approved workspace. Create parent folders if needed."""
+        target = safe_workspace_path(file_path)
+        try:
+            target.write_text(content, encoding = "utf-8")
+            return f"Wrote {len(content)} characters to {file_path}"
+        except Exception as exec:
+            return f"Failed to write file {file_path}:{exec}"
+    @tool
+    def remember_preference(key:str, value:str) -> str:
+        """Remember a user preference as a key-value pair. Use the 'get_preference' tool to retrieve it later."""
+        try:
+            self.memory.set(key,value)
+            return f"Remembered preference {key}={value}"
+        except Exception as exc:
+            return f"Failed to remember preference {key}:{exc}"
+    
+    @tool
+    def recall_preference(key:str) -> str:
+        """Recall a previously remembered user preference by key"""
+        try:
+            value = self.memory.get(key.strip())
+            if value is None:
+                return f"No preference found for {key}"
+            return f"{key} = {value}"
+        except Exception as exc:
+            return f"Failed to recall preference {key}:{exc}"
+    @tool
+    def show_memory() -> str:
+        """Show the saved long-term memory as a JSON string. This includes all remembered preferences.
+        """
+        try:
+            mem = self.memory.all()
+            if not mem:
+                return "Memory is empty."
+            return json.dumps(mem, indent=2, ensure_ascii=False)
+        except Exception as exc:
+            return f"Failed to show memory:{exc}"
+    
+    @tool
+    def call_booking_api(service:str,payload_json:str) -> str:
+        """Call a booking API for a configured through enviroment variables. This is a placeholder tool and will not work unless properly set up. Only use this when you are sure the API is configured, and always ask for confirmation before calling it.
+        """ 
+        import requests
+        base_url = os.getenv("BOOKING_API_BASE_URL", "").strip()
+        api_key = os.getenv("BOOKING_API_KEY", "").strip()
+        if not base_url or not api_key:
+            return "Booking API is not configured."
+        try:
+            payload = json.loads(payload_json)
+        except Exception as exc:
+            return f"Invalid JSON payload:{exc}"
+        headers = {'content-type':'application/json'}
+        if api_key:
+            headers["Authorization"] = f"Bearer {api_key}"
+
+        try:
+            response = requests.post(
+                base_url.rstrip("/") + f"/{service.lstrip('/')}",
+                json=payload,
+                headers=headers
+                timeout=10
+            )
+            return f"Status: {response.status_code}: {response.text[:1500]}"
+        except Exception as exc:
+            return f"Failed to call booking API:{exc}"
+        
+
+    @tool
+    def call_order_api(action: str, payload_json: str) -> str:
+        """Call an order API configured through environment variables."""
+        import requests
+
+        base_url = os.getenv("ORDER_API_URL", "").strip()
+        api_key = os.getenv("ORDER_API_KEY", "").strip()
+        if not base_url:
+            return "ORDER_API_URL is not configured."
+
+        try:
+            payload = json.loads(payload_json)
+        except Exception as exc:
+            return f"Invalid JSON payload: {exc}"
+
+        headers = {"Content-Type": "application/json"}
+        if api_key:
+            headers["Authorization"] = f"Bearer {api_key}"
+
+        try:
+            response = requests.post(
+                base_url.rstrip("/") + f"/{action.lstrip('/')}",
+                json=payload,
+                headers=headers,
+                timeout=30,
+            )
+            return f"Status {response.status_code}: {response.text[:1500]}"
+        except Exception as exc:
+            return f"Order API call failed: {exc}"
+        
+    
+RISKY_TOOLS = {
+    "write_file",
+    "call_booking_api",
+    "call_order_api",
+}
+
+def safe_workspace_path(path_str:str,create_parent:bool=False) -> Path:
+    """Resolve a path safely inside the workspace, preventing directory traversal. Optionally create parent folders if they don't exist."""
+    candidate = (WORKSPACE_ROOT/path_str).resolve()
+    workspace = WORKSPACE_ROOT.resolve()
+    if workspace not in candidate.parents and candidate != workspace:
+        raise ValueError(f"Path must stay inside the workspace.")
+    if create_parent:
+        candidate.parent.mkdir(parents=True, exist_ok=True)
+    return candidate

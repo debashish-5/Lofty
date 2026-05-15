@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LOFTY Features</title>
+  <meta name="description" content="LOFTY feature page with a sticky left panel and stacked feature videos on the right in a premium black layout." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg: #000;
+      --bg-soft: #050505;
+      --text: #f5f5f5;
+      --muted: rgba(245, 245, 245, 0.68);
+      --line: rgba(255, 255, 255, 0.08);
+      --green: #31d16a;
+      --green-soft: #8ef0ad;
+      --shadow: 0 28px 80px rgba(0, 0, 0, 0.45);
+      --radius-xl: 30px;
+      --radius-lg: 22px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(49, 209, 106, 0.08), transparent 24%),
+        radial-gradient(circle at top right, rgba(255, 255, 255, 0.03), transparent 20%),
+        linear-gradient(180deg, #000 0%, #050505 100%);
+      color: var(--text);
+      overflow-x: hidden;
+    }
+
+    a { color: inherit; text-decoration: none; }
+    video { display: block; width: 100%; height: 100%; object-fit: cover; }
+
+    .shell {
+      width: min(1450px, calc(100% - 36px));
+      margin: 0 auto;
+    }
+
+    /* NAV */
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      padding: 18px 0;
+      backdrop-filter: blur(18px);
+      background: rgba(0, 0, 0, 0.72);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .nav-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-mark {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, var(--green), var(--green-soft));
+      color: #050505;
+      font-weight: 900;
+      flex: 0 0 auto;
+    }
+
+    .brand-text h1 {
+      margin: 0;
+      font-size: 0.98rem;
+      letter-spacing: 0.14em;
+    }
+
+    .brand-text p {
+      margin: 3px 0 0;
+      color: rgba(255, 255, 255, 0.58);
+      font-size: 0.82rem;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .nav-links a {
+      color: rgba(255, 255, 255, 0.78);
+      font-size: 0.92rem;
+      font-weight: 600;
+      padding: 8px 11px;
+      border-radius: 999px;
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+
+    .nav-links a:hover {
+      background: rgba(255, 255, 255, 0.06);
+      color: #fff;
+    }
+
+    .nav-cta {
+      padding: 11px 18px;
+      border-radius: 999px;
+      background: var(--green);
+      color: #050505;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    /* PAGE */
+    .page {
+      padding: 28px 0 64px;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 0.92fr 1.08fr;
+      gap: 24px;
+      align-items: start;
+    }
+
+    .sticky-left {
+      position: sticky;
+      top: 96px;
+      align-self: start;
+      min-height: calc(100vh - 128px);
+      padding-right: 6px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.04);
+      color: rgba(255, 255, 255, 0.82);
+      font-size: 0.88rem;
+      font-weight: 700;
+    }
+
+    .eyebrow::before {
+      content: "";
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 0 5px rgba(49, 209, 106, 0.10);
+    }
+
+    .title {
+      margin: 18px 0 0;
+      font-size: clamp(2.8rem, 6vw, 6rem);
+      line-height: 0.95;
+      letter-spacing: -0.06em;
+      max-width: 11ch;
+      text-transform: uppercase;
+    }
+
+    .title .accent {
+      background: linear-gradient(135deg, #fff 0%, #dcffe5 22%, #8ef0ad 58%, #69e58b 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .intro {
+      margin-top: 18px;
+      max-width: 60ch;
+      color: rgba(255, 255, 255, 0.70);
+      font-size: 1.02rem;
+      line-height: 1.9;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 26px;
+    }
+
+    .btn {
+      border: none;
+      cursor: pointer;
+      border-radius: 14px;
+      padding: 14px 18px;
+      font-weight: 800;
+      transition: transform 0.15s ease, opacity 0.15s ease;
+      font: inherit;
+    }
+
+    .btn:hover { transform: translateY(-1px); }
+    .btn.primary { background: var(--green); color: #050505; }
+    .btn.ghost { background: transparent; border: 1px solid rgba(255, 255, 255, 0.08); color: #fff; }
+
+    .front-video {
+      margin-top: 28px;
+      position: relative;
+      min-height: 56vh;
+      border-radius: 32px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: var(--bg-soft);
+      box-shadow: var(--shadow);
+      isolation: isolate;
+    }
+
+    .front-video::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      background:
+        radial-gradient(circle at center, transparent 30%, rgba(0, 0, 0, 0.18) 62%, rgba(0, 0, 0, 0.82) 100%),
+        linear-gradient(90deg, rgba(0, 0, 0, 0.72) 0%, transparent 20%, transparent 80%, rgba(0, 0, 0, 0.72) 100%),
+        linear-gradient(180deg, rgba(0, 0, 0, 0.15), rgba(0, 0, 0, 0.32));
+      pointer-events: none;
+    }
+
+    .front-video video {
+      transform: scale(1.06);
+      filter: brightness(0.88) contrast(1.02) saturate(1.02);
+    }
+
+    .front-badge {
+      position: absolute;
+      top: 18px;
+      left: 18px;
+      z-index: 3;
+      padding: 9px 13px;
+      border-radius: 999px;
+      background: rgba(0, 0, 0, 0.55);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: #fff;
+      font-size: 0.84rem;
+      backdrop-filter: blur(10px);
+    }
+
+    .mini-meta {
+      margin-top: 16px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .meta-card {
+      padding: 16px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+    }
+
+    .meta-card strong {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 1rem;
+    }
+
+    .meta-card span {
+      color: rgba(255, 255, 255, 0.62);
+      line-height: 1.55;
+      font-size: 0.88rem;
+    }
+
+    /* RIGHT SIDE FEATURE STACK */
+    .section-title {
+      margin-bottom: 18px;
+      padding-top: 6px;
+    }
+
+    .section-title h3 {
+      font-size: clamp(2rem, 4vw, 3.4rem);
+      letter-spacing: -0.05em;
+      line-height: 1;
+      margin-bottom: 12px;
+    }
+
+    .section-title p {
+      color: rgba(255, 255, 255, 0.62);
+      max-width: 70ch;
+      line-height: 1.8;
+    }
+
+    .video-stack {
+      display: grid;
+      gap: 18px;
+    }
+
+    .video-card {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      gap: 18px;
+      align-items: stretch;
+      padding: 18px;
+      border-radius: 28px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: var(--shadow);
+    }
+
+    .video-frame {
+      position: relative;
+      min-height: 240px;
+      overflow: hidden;
+      border-radius: 20px;
+      background: #040404;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .video-frame::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      background:
+        radial-gradient(circle at center, transparent 35%, rgba(0, 0, 0, 0.18) 68%, rgba(0, 0, 0, 0.88) 100%),
+        linear-gradient(180deg, rgba(0, 0, 0, 0.06), rgba(0, 0, 0, 0.30));
+      pointer-events: none;
+    }
+
+    .video-frame video {
+      transform: scale(1.05);
+      filter: brightness(0.90) contrast(1.03) saturate(1.01);
+    }
+
+    .video-copy {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 6px 4px;
+    }
+
+    .video-copy .index {
+      color: rgba(49, 209, 106, 0.95);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .video-copy h4 {
+      margin: 0;
+      font-size: 1.55rem;
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+    }
+
+    .video-copy p {
+      margin-top: 12px;
+      color: rgba(255, 255, 255, 0.66);
+      line-height: 1.85;
+      font-size: 0.98rem;
+      max-width: 60ch;
+    }
+
+    .video-tags {
+      margin-top: 14px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      color: rgba(255, 255, 255, 0.80);
+      font-size: 0.82rem;
+      font-weight: 600;
+    }
+
+    .footer {
+      padding: 24px 0 42px;
+      color: rgba(255, 255, 255, 0.50);
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 1100px) {
+      .layout { grid-template-columns: 1fr; }
+      .sticky-left {
+        position: relative;
+        top: auto;
+        min-height: auto;
+        padding-right: 0;
+      }
+      .video-card { grid-template-columns: 1fr; }
+      .video-frame { min-height: 300px; }
+    }
+
+    @media (max-width: 760px) {
+      .shell { width: min(100%, calc(100% - 18px)); }
+      .nav-row { flex-wrap: wrap; gap: 12px; }
+      .nav-links { gap: 8px; }
+      .page { padding-top: 18px; }
+      .title { font-size: clamp(2.4rem, 11vw, 4.5rem); max-width: none; }
+      .mini-meta { grid-template-columns: 1fr; }
+      .front-video { min-height: 44vh; border-radius: 24px; }
+      .video-frame { min-height: 240px; }
+      .video-copy h4 { font-size: 1.25rem; }
+    }
+  </style>
+
+</head>
+<body>
+  <header class="nav">
+    <div class="shell nav-row">
+      <a class="brand" href="#top">
+        <div class="brand-mark">L</div>
+        <div class="brand-text">
+          <h1>LOFTY</h1>
+          <p>Premium AI assistant</p>
+        </div>
+      </a>
+
+```
+  <nav class="nav-links" aria-label="Main navigation">
+    <a href="#features">Features</a>
+    <a href="#voice">Voice</a>
+    <a href="#tools">Tools</a>
+    <a href="#memory">Memory</a>
+  </nav>
+
+  <a class="nav-cta" href="#features">Explore</a>
+</div>
+```
+
+  </header>
+
+  <main id="top" class="shell page">
+    <div class="layout">
+      <aside class="sticky-left">
+        <div class="eyebrow">Feature page</div>
+        <h2 class="title"><span class="accent">LOFTY</span> features</h2>
+        <p class="intro">
+          A calm, premium, black feature page for your assistant project. The left side stays fixed while the feature videos on the right move down in a clean, stacked layout.
+        </p>
+
+```
+    <div class="hero-actions">
+      <button class="btn primary">Start</button>
+      <button class="btn ghost">View Details</button>
+    </div>
+
+    <div class="front-video">
+      <div class="front-badge">Front feature video</div>
+      <video autoplay muted loop playsinline>
+        <source src="services.mp4" type="video/mp4" />
+      </video>
+    </div>
+
+    <div class="mini-meta">
+      <div class="meta-card">
+        <strong>Minimal</strong>
+        <span>Strong spacing and readable hierarchy.</span>
+      </div>
+      <div class="meta-card">
+        <strong>Gentle</strong>
+        <span>Soft contrast and calm visual flow.</span>
+      </div>
+      <div class="meta-card">
+        <strong>Professional</strong>
+        <span>Portfolio-ready feature presentation.</span>
+      </div>
+    </div>
+  </aside>
+
+  <section class="right-side" id="features">
+    <div class="section-title">
+      <h3>What LOFTY can do</h3>
+      <p>
+        Each feature is written to sound polished, usable, and project-ready.
+      </p>
+    </div>
+
+    <div class="video-stack">
+      <article class="video-card" id="voice">
+        <div class="video-frame">
+          <video autoplay muted loop playsinline>
+            <source src="https://dcfeefc985bc32e8174c90ccaf13952f.r2.cloudflarestorage.com/utazon/domo/3.mp4?x-id=GetObject&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=7e402670ec757dda70083bf1c3da10f1%2F20260515%2Fauto%2Fs3%2Faws4_request&X-Amz-Date=20260515T082739Z&X-Amz-Expires=600&X-Amz-SignedHeaders=host&X-Amz-Signature=8ae0b254494c1bbe7dbd98d2dea541b33981f2aa0eeed79b44bd9db3eb10036b" type="video/mp4" />
+          </video>
+        </div>
+        <div class="video-copy">
+          <div class="index">01</div>
+          <h4>Voice interaction</h4>
+          <p>
+            LOFTY listens and responds in a natural voice flow, making the assistant feel alive and present during conversation.
+          </p>
+          <div class="video-tags">
+            <span class="tag">Speech to text</span>
+            <span class="tag">Voice response</span>
+            <span class="tag">Live assistant feel</span>
+          </div>
+        </div>
+      </article>
+
+      <article class="video-card" id="tools">
+        <div class="video-frame">
+          <video autoplay muted loop playsinline>
+            <source src="https://dcfeefc985bc32e8174c90ccaf13952f.r2.cloudflarestorage.com/utazon/domo/2.mp4?x-id=GetObject&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=7e402670ec757dda70083bf1c3da10f1%2F20260515%2Fauto%2Fs3%2Faws4_request&X-Amz-Date=20260515T082739Z&X-Amz-Expires=600&X-Amz-SignedHeaders=host&X-Amz-Signature=f2340f49bfda6cf70064c5c31b5c6416459e2c7a6f6918f8f73d4d599197e000" type="video/mp4" />
+          </video>
+        </div>
+        <div class="video-copy">
+          <div class="index">02</div>
+          <h4>Tool-based actions</h4>
+          <p>
+            The assistant can perform real actions such as opening apps, handling files, and connecting to practical workflows.
+          </p>
+          <div class="video-tags">
+            <span class="tag">Open apps</span>
+            <span class="tag">File tools</span>
+            <span class="tag">Automation</span>
+          </div>
+        </div>
+      </article>
+
+      <article class="video-card" id="memory">
+        <div class="video-frame">
+          <video autoplay muted loop playsinline>
+            <source src="https://dcfeefc985bc32e8174c90ccaf13952f.r2.cloudflarestorage.com/utazon/domo/1.mp4?x-id=GetObject&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=7e402670ec757dda70083bf1c3da10f1%2F20260515%2Fauto%2Fs3%2Faws4_request&X-Amz-Date=20260515T082739Z&X-Amz-Expires=600&X-Amz-SignedHeaders=host&X-Amz-Signature=a492795f5d742223d86431dbf9312955f94941bc0e28c8e11c301f09cedeca50" type="video/mp4" />
+          </video>
+        </div>
+        <div class="video-copy">
+          <div class="index">03</div>
+          <h4>Memory system</h4>
+          <p>
+            LOFTY remembers preferences and important context over time so the assistant becomes more personal and useful.
+          </p>
+          <div class="video-tags">
+            <span class="tag">Preferences</span>
+            <span class="tag">Long-term memory</span>
+            <span class="tag">Personalization</span>
+          </div>
+        </div>
+      </article>
+    </div>
+  </section>
+</div>
+
+<section class="footer">
+  LOFTY — feature page for a premium AI assistant project.
+</section>
+```
+
+  </main>
+</body>
+</html>
