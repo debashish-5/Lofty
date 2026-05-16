@@ -23,6 +23,7 @@ from langgraph.graph import StateGraph,START,END
 from langgraph.graph.message import add_messages
 from langchain_ollama import ChatOllama
 from streamlit import user
+import torch
 
 from lovify_assistant_split_package.assistant_app.tools import safe_workspace_path
 
@@ -312,3 +313,51 @@ def safe_workspace_path(path_str:str,create_parent:bool=False) -> Path:
     if create_parent:
         candidate.parent.mkdir(parents=True, exist_ok=True)
     return candidate
+
+class WhisperTranscriber:
+    def __init__(self) -> None:
+        self._model = None
+        self.error  = None
+    try:
+        import numpy as np
+        import sounddevice as sd
+        from scipy.io.wavfile import wav_write
+        from faster_whisper import WhisperModel
+
+        self.np = np
+        self.sd = sd
+        self.wav_write = wav_write
+        self.WhisperModel = WhisperModel
+        print("VOICE INIT OK")
+    except Exception as e:
+        self.np = None
+        self.sd = None
+        self.wav_write = None
+        self.WhisperModel = None
+        self.error = repr(e)
+        print(f"VOICE INIT FAILED:{self.error}")
+    def available(self) ->  bool:
+        return self.error is None 
+    
+    def model(self):
+        if self._model is None:
+            if self.WhisperModel is None:
+                raise RuntimeError(f"Whisper model is not available: {self.error}")
+            self._model = self.WhisperModel(WHISPER_MODEL_SIZE, device="cpu", compute_type="int8")
+        return self._model
+    def record_seconds(self,seconds:float = 5.0, sample_rate:int = 16000) -> Path:
+        if not self.available():
+            raise RuntimeError(f"Voice dependencies are missing: {self.error}")
+        print(f"Recording for {seconds} seconds...")
+        audio = self.sd.rec(int(seconds * sample_rate),samplerate=sample_rate,channels=1,dtype="float32")
+        self.sd.wait()
+        data = self.sd.rec(int(audio))
+        temp_path = Path(tempfile.gettempdir()) / f"lovify_{int(time.time())}.wav"
+        int16_audio = self.np.int16(self.np.clip(data, -1.0, 1.0) * 32767)
+        self.wav_write(str(temp_path), sample_rate, int16_audio)
+        return temp_path
+    def transcribe(self,wav_path:Path) -> str:
+        model = self.model()
+        segments, _info  = model.transcribe(str(wav_path),language="en")
+        return " ".join(segments.text.strip() for segment in segments).strip()
+        

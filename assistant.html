@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LOFTY Assistant</title>
+  <meta name="description" content="Premium black LOFTY assistant page with intro video, centered avatar, speaking state, and voice-control flow." />
+
+  <style>
+    :root {
+      --bg: #000000;
+      --panel: rgba(255, 255, 255, 0.04);
+      --panel-strong: rgba(255, 255, 255, 0.06);
+      --line: rgba(255, 255, 255, 0.08);
+      --text: #f5f5f5;
+      --muted: rgba(245, 245, 245, 0.68);
+      --green: #31d16a;
+      --green-soft: #8ef0ad;
+      --green-dark: #1aa64d;
+      --shadow: 0 30px 90px rgba(0, 0, 0, 0.52);
+      --radius-xl: 34px;
+      --radius-lg: 24px;
+      --radius-md: 16px;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at top left, rgba(49, 209, 106, 0.08), transparent 22%),
+        radial-gradient(circle at bottom right, rgba(49, 209, 106, 0.05), transparent 18%),
+        #000;
+      color: var(--text);
+      font-family: Inter, Segoe UI, system-ui, -apple-system, sans-serif;
+      overflow: hidden;
+    }
+
+    button, input, textarea { font: inherit; }
+    a { color: inherit; text-decoration: none; }
+    video, img { display: block; max-width: 100%; }
+
+    /* ENTRY OVERLAY */
+    .entry {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: #000;
+      display: grid;
+      place-items: center;
+      transition: opacity 0.8s ease, transform 0.8s ease;
+    }
+
+    .entry.hidden {
+      opacity: 0;
+      pointer-events: none;
+      transform: scale(1.02);
+    }
+
+    .entry-stage {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+    }
+
+    .entry-stage video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+      transform: scale(1.05);
+      filter: brightness(0.78) contrast(1.08) saturate(1.02);
+    }
+
+    .entry-vignette {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at center, transparent 24%, rgba(0,0,0,0.18) 60%, rgba(0,0,0,0.94) 100%),
+        linear-gradient(180deg, rgba(0,0,0,0.20), rgba(0,0,0,0.40));
+    }
+
+    .entry-copy {
+      position: relative;
+      z-index: 2;
+      display: grid;
+      gap: 14px;
+      text-align: center;
+      padding: 24px;
+    }
+
+    .entry-badge {
+      justify-self: center;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 16px;
+      border-radius: 999px;
+      background: rgba(0, 0, 0, 0.55);
+      border: 1px solid rgba(255,255,255,0.08);
+      color: #fff;
+      font-size: 0.88rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      backdrop-filter: blur(12px);
+    }
+
+    .entry-badge::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 0 5px rgba(49,209,106,0.12);
+    }
+
+    .entry-copy h1 {
+      margin: 0;
+      font-size: clamp(2.8rem, 9vw, 6rem);
+      line-height: 0.95;
+      letter-spacing: -0.08em;
+      background: linear-gradient(135deg, #ffffff 0%, #dcffe5 24%, var(--green-soft) 58%, #6fe58e 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .entry-copy p {
+      margin: 0;
+      color: rgba(255,255,255,0.72);
+      font-size: 0.98rem;
+    }
+
+    .entry-tip {
+      color: rgba(255,255,255,0.48);
+      font-size: 0.86rem;
+    }
+
+    /* APP */
+    .app {
+      min-height: 100vh;
+      width: min(1480px, calc(100% - 28px));
+      margin: 0 auto;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      gap: 18px;
+      padding: 18px 0 20px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 14px 18px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.03);
+      backdrop-filter: blur(16px);
+      box-shadow: var(--shadow);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .brand-mark {
+      width: 46px;
+      height: 46px;
+      border-radius: 16px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, var(--green), var(--green-soft));
+      color: #050505;
+      font-weight: 900;
+      flex: 0 0 auto;
+    }
+
+    .brand-text h2 {
+      margin: 0;
+      font-size: 1rem;
+      letter-spacing: 0.14em;
+    }
+
+    .brand-text p {
+      margin: 3px 0 0;
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.04);
+      color: rgba(255,255,255,0.82);
+      font-size: 0.9rem;
+      white-space: nowrap;
+    }
+
+    .status-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 0 5px rgba(49,209,106,0.12);
+    }
+
+    .stage {
+      display: grid;
+      place-items: center;
+      padding: 10px 0 4px;
+    }
+
+    .assistant-shell {
+      width: min(100%, 1080px);
+      min-height: min(74vh, 800px);
+      position: relative;
+      border-radius: 38px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.08);
+      background:
+        radial-gradient(circle at center, rgba(49,209,106,0.06), transparent 28%),
+        #000;
+      box-shadow: var(--shadow);
+      isolation: isolate;
+    }
+
+    .assistant-shell::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      background:
+        radial-gradient(circle at center, transparent 24%, rgba(0,0,0,0.18) 58%, rgba(0,0,0,0.92) 100%),
+        linear-gradient(90deg, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.18) 18%, transparent 34%, transparent 66%, rgba(0,0,0,0.18) 82%, rgba(0,0,0,0.88) 100%),
+        linear-gradient(180deg, rgba(0,0,0,0.10), rgba(0,0,0,0.36));
+      pointer-events: none;
+    }
+
+    .layers {
+      position: absolute;
+      inset: 0;
+    }
+
+    .idle-layer,
+    .speaking-layer {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      transition: opacity 0.28s ease, transform 0.28s ease, filter 0.28s ease;
+    }
+
+    .idle-layer {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .speaking-layer {
+      opacity: 0;
+      transform: scale(1.02);
+      filter: saturate(1.04);
+    }
+
+    .assistant-shell.speaking .idle-layer {
+      opacity: 0;
+      transform: scale(0.985);
+    }
+
+    .assistant-shell.speaking .speaking-layer {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .idle-image,
+    .speaking-video,
+    .speaking-gif {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+    }
+
+    .idle-image {
+      transform: scale(1.01);
+      filter: brightness(0.93) contrast(1.02) saturate(1.01);
+    }
+
+    .speaking-video,
+    .speaking-gif {
+      transform: scale(1.03);
+      filter: brightness(0.90) contrast(1.04) saturate(1.02);
+    }
+
+    .overlay-ui {
+      position: absolute;
+      inset: 0;
+      z-index: 3;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      pointer-events: none;
+      padding: 22px;
+    }
+
+    .top-chip-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: rgba(0,0,0,0.42);
+      border: 1px solid rgba(255,255,255,0.08);
+      color: rgba(255,255,255,0.86);
+      backdrop-filter: blur(10px);
+      font-size: 0.86rem;
+    }
+
+    .chip::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 0 5px rgba(49,209,106,0.12);
+    }
+
+    .speech-box {
+      align-self: center;
+      width: min(48rem, 100%);
+      border-radius: 20px;
+      padding: 14px 16px;
+      background: rgba(0,0,0,0.38);
+      border: 1px solid rgba(255,255,255,0.08);
+      backdrop-filter: blur(12px);
+      color: rgba(255,255,255,0.90);
+      line-height: 1.75;
+      font-size: 0.96rem;
+      box-shadow: 0 18px 50px rgba(0,0,0,0.25);
+    }
+
+    .controls {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 18px;
+      padding-bottom: 4px;
+    }
+
+    .btn {
+      border: none;
+      cursor: pointer;
+      border-radius: 16px;
+      padding: 14px 20px;
+      font-weight: 800;
+      transition: transform 0.15s ease, opacity 0.15s ease, background 0.15s ease;
+    }
+
+    .btn:hover { transform: translateY(-1px); }
+    .btn.primary { background: var(--green); color: #050505; }
+    .btn.ghost { background: rgba(255,255,255,0.03); color: #fff; border: 1px solid rgba(255,255,255,0.08); }
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+    .footer {
+      text-align: center;
+      color: rgba(255,255,255,0.48);
+      font-size: 0.88rem;
+      padding-bottom: 6px;
+    }
+
+    @media (max-width: 900px) {
+      .app { width: min(100% - 16px, 1480px); }
+      .topbar { border-radius: 26px; }
+      .assistant-shell { min-height: 58vh; border-radius: 26px; }
+      .overlay-ui { padding: 16px; }
+    }
+
+    @media (max-width: 640px) {
+      .topbar { flex-wrap: wrap; }
+      .status { width: 100%; justify-content: center; }
+      .brand-text h2 { font-size: 0.95rem; }
+      .assistant-shell { min-height: 50vh; }
+      .controls { margin-top: 14px; }
+      .btn { width: 100%; }
+      .speech-box { font-size: 0.92rem; }
+      .top-chip-row { justify-content: center; }
+      .chip { width: 100%; justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Entry overlay -->
+  <div id="entry" class="entry" aria-label="Entry intro">
+    <div class="entry-stage">
+      <video id="entryVideo" autoplay muted loop playsinline>
+        <source src="Untitled Project.mp4" type="video/mp4" />
+      </video>
+      <div class="entry-vignette"></div>
+    </div>
+    <div class="entry-copy">
+      <div class="entry-badge">LOFTY ENTRY</div>
+      <h1>Enter the assistant</h1>
+      <p>Intro motion at 2x speed, then the main assistant opens.</p>
+      <div class="entry-tip">Replace <strong>entry-ascii-art.mp4</strong> with your intro clip.</div>
+    </div>
+  </div>
+
+  <main class="app">
+    <header class="topbar">
+      <a class="brand" href="#top">
+        <div class="brand-mark">L</div>
+        <div class="brand-text">
+          <h2>LOFTY</h2>
+          <p>Human-like assistant</p>
+        </div>
+      </a>
+
+      <div id="status" class="status">
+        <span class="status-dot"></span>
+        <span>Ready</span>
+      </div>
+    </header>
+
+    <section class="stage" id="top">
+      <div id="assistantShell" class="assistant-shell">
+        <div class="layers">
+          <div class="idle-layer" id="idleLayer">
+            <img class="idle-image" src="idle-person.png" alt="LOFTY idle portrait" />
+          </div>
+
+          <div class="speaking-layer" id="speakingLayer">
+            <video id="speakingMedia" class="speaking-video" muted playsinline loop>
+              <source src="speaking-person.mp4" type="video/mp4" />
+            </video>
+            <img id="speakingGif" class="speaking-gif" src="speaking-person.gif" alt="LOFTY speaking animation" style="display:none;" />
+          </div>
+        </div>
+
+        <div class="overlay-ui">
+          <div class="top-chip-row">
+            <div class="chip">Stable portrait idle</div>
+            <div class="chip">Speaking loop at 1.5x</div>
+          </div>
+
+          <div class="speech-box" id="speechBox">
+            Press Start to begin. The portrait stays still in idle mode. When speaking starts, the video or GIF switches on and loops until the voice ends.
+          </div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button id="startBtn" class="btn primary">Start</button>
+        <button id="stopBtn" class="btn ghost">Stop</button>
+      </div>
+    </section>
+
+    <div class="footer">
+      Black premium assistant page — idle image, speaking animation, intro clip, and natural voice flow.
+    </div>
+  </main>
+
+  <script>
+    const entry = document.getElementById('entry');
+    const entryVideo = document.getElementById('entryVideo');
+    const assistantShell = document.getElementById('assistantShell');
+    const speakingMedia = document.getElementById('speakingMedia');
+    const speakingGif = document.getElementById('speakingGif');
+    const startBtn = document.getElementById('startBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const statusEl = document.getElementById('status');
+    const speechBox = document.getElementById('speechBox');
+
+    let speaking = false;
+    let entryDismissed = false;
+    let speechUtterance = null;
+
+    const assistantText = 'Hello. I am LOFTY. I am ready to help you with apps, files, bookings, orders, and all supported tools.';
+
+    function setStatus(label) {
+      statusEl.innerHTML = `<span class="status-dot"></span><span>${label}</span>`;
+    }
+
+    function useVideoIfPossible() {
+      const videoLooksAvailable = speakingMedia && speakingMedia.querySelector('source') && speakingMedia.querySelector('source').getAttribute('src');
+      speakingMedia.style.display = videoLooksAvailable ? 'block' : 'none';
+      speakingGif.style.display = videoLooksAvailable ? 'none' : 'block';
+      return videoLooksAvailable;
+    }
+
+    function startSpeaking() {
+      if (speaking) return;
+      speaking = true;
+      assistantShell.classList.add('speaking');
+      setStatus('Speaking');
+      speechBox.textContent = assistantText;
+
+      const videoMode = useVideoIfPossible();
+      if (videoMode) {
+        speakingMedia.playbackRate = 1.5;
+        speakingMedia.currentTime = 0;
+        speakingMedia.play().catch(() => {});
+      }
+
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        speechUtterance = new SpeechSynthesisUtterance(assistantText);
+        speechUtterance.rate = 1.02;
+        speechUtterance.pitch = 1.0;
+        speechUtterance.onend = stopSpeaking;
+        speechUtterance.onerror = stopSpeaking;
+        window.speechSynthesis.speak(speechUtterance);
+      } else {
+        setTimeout(stopSpeaking, 4500);
+      }
+    }
+
+    function stopSpeaking() {
+      if (!speaking) return;
+      speaking = false;
+      assistantShell.classList.remove('speaking');
+      setStatus('Ready');
+      speechBox.textContent = 'Press Start to begin again.';
+
+      try { speakingMedia.pause(); } catch (_) {}
+      try { speakingMedia.currentTime = 0; } catch (_) {}
+      try { window.speechSynthesis.cancel(); } catch (_) {}
+    }
+
+    startBtn.addEventListener('click', startSpeaking);
+    stopBtn.addEventListener('click', stopSpeaking);
+
+    speakingMedia.addEventListener('ended', () => {
+      if (speaking) stopSpeaking();
+    });
+
+    window.addEventListener('load', () => {
+      try {
+        entryVideo.playbackRate = 2.0;
+        entryVideo.play().catch(() => {});
+      } catch (_) {}
+
+      setTimeout(() => {
+        if (!entryDismissed) {
+          entryDismissed = true;
+          entry.classList.add('hidden');
+          document.body.style.overflow = 'hidden';
+        }
+      }, 2400);
+
+      entryVideo.addEventListener('ended', () => {
+        if (!entryDismissed) {
+          entryDismissed = true;
+          entry.classList.add('hidden');
+        }
+      });
+    });
+  </script>
+</body>
+</html>
