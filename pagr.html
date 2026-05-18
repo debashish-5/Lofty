@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lofty Core // Next-Gen Cyber Deck</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=JetBrains+Mono:wght@400;500;700;800&display=swap');
+
+    /* MASTER INTEL THEME ENGINE */
+    :root {
+      --bg: #030307;
+      --bg-gradient: radial-gradient(circle at 50% 0%, #0d0e22 0%, #030307 100%);
+      --panel-bg: rgba(10, 12, 22, 0.6);
+      --panel-border: rgba(255, 255, 255, 0.06);
+      --text-main: #f1f5f9;
+      --text-muted: #475569;
+      --accent-1: #00f2fe;
+      --accent-2: #4facfe;
+      --accent-3: #7c3aed;
+      --theme-glow: rgba(0, 242, 254, 0.25);
+      --blur: blur(24px);
+      --shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+    }
+
+    [data-theme="crimson"] {
+      --bg-gradient: radial-gradient(circle at 50% 0%, #250505 0%, #020000 100%);
+      --panel-bg: rgba(18, 6, 6, 0.65);
+      --accent-1: #ff0055;
+      --accent-2: #ff4343;
+      --accent-3: #e11d48;
+      --theme-glow: rgba(255, 0, 85, 0.25);
+    }
+
+    [data-theme="neon"] {
+      --bg-gradient: radial-gradient(circle at 50% 0%, #021a08 0%, #000000 100%);
+      --panel-bg: rgba(4, 16, 7, 0.65);
+      --accent-1: #39ff14;
+      --accent-2: #05ffa1;
+      --accent-3: #10b981;
+      --theme-glow: rgba(57, 255, 20, 0.25);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { width: 100vw; height: 100vh; overflow: hidden; background: var(--bg); background-image: var(--bg-gradient); font-family: 'JetBrains Mono', 'Fira Code', monospace; color: var(--text-main); transition: all 0.6s cubic-bezier(0.22, 1, 0.36, 1); letter-spacing: -0.025em; }
+    
+    /* Post Processing Screens */
+    .fx-layer { position: fixed; inset: 0; pointer-events: none; z-index: 9999; }
+    .noise { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100' height='100' filter='url(%23n)'/></svg>"); opacity: 0.025; mix-blend-mode: overlay; }
+    .scanlines { background: linear-gradient(to bottom, transparent 50%, rgba(0,0,0,0.12) 50%); background-size: 100% 4px; opacity: 0.5; }
+
+    /* Glassmorphic Grid Architecture */
+    .deck-grid { display: grid; grid-template-columns: 360px 1fr 380px; grid-template-rows: 75px 1fr; gap: 20px; padding: 20px; height: 100vh; max-width: 1920px; margin: 0 auto; opacity: 1; }
+
+    .header-panel { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; padding: 0 30px; }
+    .glass-card { background: var(--panel-bg); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); border: 1px solid var(--panel-border); border-radius: 16px; box-shadow: var(--shadow); position: relative; display: flex; flex-direction: column; overflow: hidden; transition: border 0.3s, box-shadow 0.3s; }
+    .glass-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--accent-1), transparent); opacity: 0.4; }
+
+    .stat-cluster { display: flex; gap: 40px; }
+    .stat-node { display: flex; flex-direction: column; gap: 4px; }
+    .stat-lbl { font-size: 9px; text-transform: uppercase; letter-spacing: 0.2em; color: var(--text-muted); font-weight: 700; }
+    .stat-val { font-size: 14px; font-weight: 700; color: var(--text-main); }
+    .glitch-text { background: linear-gradient(90deg, var(--accent-1), var(--accent-2)); -webkit-background-clip: text; color: transparent; text-shadow: 0 0 10px var(--theme-glow); }
+
+    /* Column Control layouts */
+    .sidebar-layout { display: flex; flex-direction: column; gap: 20px; min-height: 0; }
+    .main-terminal-space { display: flex; flex-direction: column; height: 100%; min-height: 0; transition: all 0.3s ease; }
+
+    .panel-hdr { padding: 14px 20px; border-bottom: 1px solid var(--panel-border); background: rgba(0,0,0,0.15); display: flex; justify-content: space-between; align-items: center; }
+    .panel-title { font-size: 10px; font-weight: 800; letter-spacing: 0.25em; text-transform: uppercase; color: var(--accent-1); text-shadow: 0 0 10px var(--theme-glow); }
+    .live-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent-2); box-shadow: 0 0 10px var(--accent-2); animation: heartbeat 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+    @keyframes heartbeat { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.3); opacity: 0.4; } }
+
+    /* Realistic Telemetry Graphic Engine */
+    .canvas-container { padding: 15px; background: rgba(0,0,0,0.25); border-bottom: 1px solid var(--panel-border); height: 180px; position: relative; }
+    #telemetryCanvas { width: 100%; height: 100%; display: block; }
+    .graph-legends { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; padding: 12px 16px; background: rgba(0,0,0,0.1); border-bottom: 1px solid var(--panel-border); font-size: 10px; font-weight: 600; }
+    .legend-item { display: flex; align-items: center; gap: 6px; }
+    .legend-indicator { width: 8px; height: 3px; border-radius: 2px; }
+
+    /* Terminal UI & Prompt Core */
+    .terminal-body { flex: 1; overflow-y: auto; padding: 24px; font-size: 13px; line-height: 1.8; scrollbar-width: thin; scrollbar-color: var(--accent-1) transparent; }
+    .terminal-body::-webkit-scrollbar { width: 3px; }
+    .terminal-body::-webkit-scrollbar-thumb { background: var(--accent-1); border-radius: 2px; }
+    
+    .terminal-input-anchor { border-top: 1px solid var(--panel-border); padding: 16px 24px; display: flex; align-items: center; gap: 14px; background: rgba(0,0,0,0.4); position: relative; }
+    .prompt-tag { font-weight: 900; color: var(--accent-1); text-shadow: 0 0 12px var(--theme-glow); transition: color 0.3s; }
+    #cmdLine { flex: 1; background: transparent; border: none; outline: none; color: #fff; font-family: inherit; font-size: 13px; caret-color: var(--accent-2); }
+    
+    /* Micro-indicators & Badges */
+    .pill { padding: 2px 8px; border-radius: 4px; font-size: 9px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; background: rgba(255,255,255,0.03); border: 1px solid var(--panel-border); transition: all 0.3s; }
+    .pill.active-mode { color: var(--accent-1); border-color: var(--accent-1); box-shadow: 0 0 10px var(--theme-glow); }
+    
+    /* Theme Reactive Line Outputs */
+    .output-row { margin-bottom: 8px; word-wrap: break-word; }
+    .sys-msg { color: var(--accent-2); font-weight: bold; }
+    .err-msg { color: #f43f5e; font-weight: bold; text-shadow: 0 0 10px rgba(244,63,94,0.2); }
+    .ai-bubble { color: #ffffff; border-left: 3px solid var(--accent-1); padding-left: 16px; margin: 12px 0; background: linear-gradient(90deg, var(--theme-glow), transparent); }
+
+    /* Dynamic Hosted Cards Layout (Right Sidebar) */
+    .host-scroller { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 16px; }
+    .dynamic-card { background: linear-gradient(145deg, rgba(255,255,255,0.02), rgba(0,0,0,0.4)); border: 1px solid var(--panel-border); border-radius: 12px; padding: 16px; font-size: 12px; animation: cardSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; position: relative; overflow: hidden; }
+    .dynamic-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--accent-1); }
+    @keyframes cardSlideIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+    
+    .card-hdr { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 10px; color: var(--accent-2); display: flex; justify-content: space-between; align-items: center; }
+    .card-metric-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.03); }
+    .card-link { color: var(--accent-1); text-decoration: none; font-weight: 600; background: rgba(0,242,254,0.1); padding: 6px 12px; border-radius: 6px; border: 1px solid rgba(0,242,254,0.2); display: inline-block; margin-top: 8px; transition: all 0.2s; text-transform: uppercase; font-size: 11px; }
+    .card-link:hover { background: var(--accent-1); color: #000; box-shadow: 0 0 15px var(--accent-1); }
+
+    .shortcuts { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 15px; }
+    .shortcut-chip { border: 1px solid var(--panel-border); background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px; font-size: 10px; color: #64748b; cursor: pointer; }
+    .shortcut-chip:hover { border-color: var(--accent-1); }
+    .shortcut-chip b { display: block; color: var(--accent-2); font-size: 11px; margin-bottom: 2px; }
+  </style>
+</head>
+<body>
+
+  <div class="fx-layer scanlines"></div>
+  <div class="fx-layer noise"></div>
+
+  <div class="deck-grid">
+    
+    <header class="glass-card header-panel">
+      <div style="font-weight: 800; font-size: 15px; letter-spacing: 2px;">LOFTY//<span class="glitch-text">CORE-X</span></div>
+      <div class="stat-cluster">
+        <div class="stat-node"><span class="stat-lbl">FRAME WORKPIPE</span><span class="stat-val">LANGGRAPH V2</span></div>
+        <div class="stat-node"><span class="stat-lbl">BACKEND HOST</span><span class="stat-val" style="color: var(--accent-1);">LOCAL CORE API</span></div>
+        <div class="stat-node"><span class="stat-lbl">COGNITIVE TIME</span><span class="stat-val" id="timestamp">00:00:00</span></div>
+      </div>
+    </header>
+
+    <aside class="sidebar-layout">
+      <div class="glass-card">
+        <div class="panel-hdr">
+          <span class="panel-title">Realtime System Telemetry</span>
+          <div class="live-dot"></div>
+        </div>
+        
+        <div class="canvas-container">
+          <canvas id="telemetryCanvas"></canvas>
+        </div>
+
+        <div class="graph-legends">
+          <div class="legend-item"><div class="legend-indicator" style="background:#00f2fe"></div><span>CPU UTILIZATION</span></div>
+          <div class="legend-item"><div class="legend-indicator" style="background:#39ff14"></div><span>MEM ALLOCATION</span></div>
+          <div class="legend-item"><div class="legend-indicator" style="background:#ff0055"></div><span>GPU CORE STRESS</span></div>
+          <div class="legend-item"><div class="legend-indicator" style="background:#7c3aed"></div><span>NET PACKETS</span></div>
+        </div>
+      </div>
+
+      <div class="glass-card" style="flex: 1;">
+        <div class="panel-hdr"><span class="panel-title">Directive Shortcuts</span></div>
+        <div class="shortcuts">
+          <div class="shortcut-chip" onclick="executePreset('Open notepad')"><b>App Launch</b>Open Notepad</div>
+          <div class="shortcut-chip" onclick="executePreset('Run a deep model performance diagnostics test summary')"><b>Model Test</b>Performance Run</div>
+          <div class="shortcut-chip" onclick="executePreset('Give me a link to open GitHub repository')"><b>Link Gen</b>Get GitHub Link</div>
+          <div class="shortcut-chip" onclick="executePreset('Write a file named notes.txt containing System Is Fully Functional')"><b>Disk Save</b>Write local asset</div>
+        </div>
+      </div>
+    </aside>
+
+    <main class="glass-card main-terminal-space">
+      <div class="panel-hdr">
+        <span class="panel-title">Core Shell Prompt // Connected to Mistral Engine</span>
+        <span class="pill active-mode">Ollama Async</span>
+      </div>
+      
+      <div style="position: relative; flex: 1; display: flex; flex-direction: column; min-height: 0;">
+        <div class="terminal-body" id="termOut">
+          <div class="output-row sys-msg">[SYSTEM INITIALIZATION] Web core handshaking complete. Pipeline open.</div>
+        </div>
+        
+        <div class="terminal-input-anchor">
+          <div class="prompt-tag">lofty></div>
+          <input type="text" id="cmdLine" autocomplete="off" spellcheck="false" placeholder="Ask your local core assistant anything..." />
+        </div>
+      </div>
+    </main>
+
+    <aside class="sidebar-layout">
+      <div class="glass-card" style="flex: 1;">
+        <div class="panel-hdr"><span class="panel-title">Dynamic Component Host</span></div>
+        <div class="host-scroller" id="dynamicCardHost">
+          <div class="dynamic-card" id="defaultCard" style="opacity: 0.5;">
+            <div class="card-hdr"><span>HOUSING EMPTY</span><span>AWAITING</span></div>
+            <span style="color: var(--text-muted)">Triggering advanced tools (such as link generating or model performance test runs) builds interactive nodes here.</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+  </div>
+
+  <script>
+    /* =========================================================================
+       REAL-TIME TELEMETRY SYSTEM GRAPH ENGINE
+       ========================================================================= */
+    const GraphEngine = {
+      canvas: document.getElementById('telemetryCanvas'),
+      ctx: null,
+      streams: { cpu: Array(40).fill(25), mem: Array(40).fill(45), gpu: Array(40).fill(15), net: Array(40).fill(60) },
+      init() {
+        this.ctx = this.canvas.getContext('2d');
+        this.resize();
+        window.addEventListener('resize', () => this.resize());
+        this.tick();
+      },
+      resize() {
+        this.canvas.width = this.canvas.parentElement.clientWidth;
+        this.canvas.height = this.canvas.parentElement.clientHeight;
+        if (this.ctx) {
+          this.ctx.imageSmoothingEnabled = true;
+        }
+      },
+      tick() {
+        requestAnimationFrame(() => this.tick());
+        if (!this.ctx) return;
+        const ctx = this.ctx, w = this.canvas.width, h = this.canvas.height;
+        ctx.clearRect(0, 0, w, h);
+
+        this.updateStream(this.streams.cpu, 20, 60, 4);
+        this.updateStream(this.streams.mem, 40, 50, 1);
+        this.updateStream(this.streams.gpu, 10, 80, 5);
+        this.updateStream(this.streams.net, 5, 95, 12);
+
+        this.drawGrid(w, h);
+        this.drawCurve(this.streams.cpu, '#00f2fe', 2.5);
+        this.drawCurve(this.streams.mem, '#39ff14', 2);
+        this.drawCurve(this.streams.gpu, '#ff0055', 2);
+        this.drawCurve(this.streams.net, '#7c3aed', 1.5);
+      },
+      updateStream(arr, min, max, jitter) {
+        arr.shift();
+        let next = arr[arr.length - 1] + (Math.random() - 0.5) * jitter;
+        if(next < min) next = min + 2; if(next > max) next = max - 2;
+        arr.push(next);
+      },
+      drawGrid(w, h) {
+        const ctx = this.ctx;
+        ctx.save();
+        ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+        ctx.lineWidth = 1;
+        for (let i = 1; i < 4; i++) {
+          const y = (h / 4) * i;
+          ctx.beginPath();
+          ctx.moveTo(0, y);
+          ctx.lineTo(w, y);
+          ctx.stroke();
+        }
+        for (let i = 1; i < 5; i++) {
+          const x = (w / 5) * i;
+          ctx.beginPath();
+          ctx.moveTo(x, 0);
+          ctx.lineTo(x, h);
+          ctx.stroke();
+        }
+        ctx.restore();
+      },
+      drawCurve(data, color, width) {
+        const ctx = this.ctx, w = this.canvas.width, h = this.canvas.height, step = w / (data.length - 1);
+        ctx.save();
+        ctx.strokeStyle = color;
+        ctx.lineWidth = width;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.shadowColor = color;
+        ctx.shadowBlur = 12;
+        ctx.beginPath();
+        ctx.moveTo(0, h - (data[0] / 100) * h);
+        for (let i = 1; i < data.length; i++) {
+          const x = i * step;
+          const y = h - (data[i] / 100) * h;
+          const prevX = (i - 1) * step;
+          const prevY = h - (data[i - 1] / 100) * h;
+          const ctrlX = (prevX + x) / 2;
+          const ctrlY = (prevY + y) / 2;
+          ctx.quadraticCurveTo(prevX, prevY, ctrlX, ctrlY);
+        }
+        ctx.stroke();
+        ctx.restore();
+      }
+    };
+
+    /* =========================================================================
+       COMMUNICATION MATRIX INTERFACE (ASYNC FETCH TUNNEL)
+       ========================================================================= */
+    const DOM = {
+      out: document.getElementById('termOut'),
+      input: document.getElementById('cmdLine'),
+      host: document.getElementById('dynamicCardHost'),
+      clock: document.getElementById('timestamp')
+    };
+
+    // Keep clock updating natively
+    setInterval(() => { DOM.clock.textContent = new Date().toLocaleTimeString('en-US', { hour12: false }); }, 1000);
+
+    async function streamPrintText(rawText, containerClass = "") {
+      const line = document.createElement('div');
+      line.className = 'output-row ' + containerClass;
+      DOM.out.appendChild(line);
+      
+      // Fast programmatic text rendering
+      for (let char of rawText) {
+        line.textContent += char;
+        DOM.out.scrollTop = DOM.out.scrollHeight;
+        await new Promise(res => setTimeout(res, 4));
+      }
+    }
+
+    function injectCardNode(type, data) {
+      const defCard = document.getElementById('defaultCard');
+      if (defCard) defCard.remove();
+
+      const card = document.createElement('div');
+      card.className = 'dynamic-card';
+
+      if (type === 'model_summary') {
+        card.innerHTML = `
+          <div class="card-hdr"><span>📊 MODEL CORE PROFILE</span><span>ACTIVE</span></div>
+          <div class="card-metric-row"><span>Engine Pipeline:</span><span style="color:var(--accent-1)">${data.model}</span></div>
+          <div class="card-metric-row"><span>Token Window:</span><span>${data.context_window}</span></div>
+          <div class="card-metric-row"><span>Matrix Map:</span><span>${data.quantization}</span></div>
+          <div class="card-metric-row"><span>Step Latency:</span><span style="color:#39ff14">${data.inference_latency}</span></div>
+          <div class="card-metric-row"><span>Throughput Speed:</span><span>${data.throughput}</span></div>
+        `;
+      } else if (type === 'link_triggered') {
+        card.innerHTML = `
+          <div class="card-hdr"><span>🔗 NETWORK UPLINK</span><span>OPENED</span></div>
+          <p style="color: var(--text-muted); margin-bottom: 8px;">An external web target has been spawned by the core operating shell tool layer:</p>
+          <div class="card-metric-row"><span>Destination Target:</span><span>External URI</span></div>
+          <a href="${data.url}" target="_blank" class="card-link">Launch Web Path</a>
+        `;
+      }
+
+      DOM.host.prepend(card);
+    }
+
+    async function transmissionPipeline(textInput) {
+      if(!textInput.trim()) return;
+
+      // Print user echo line
+      const echo = document.createElement('div');
+      echo.className = 'output-row';
+      echo.style.opacity = '0.6';
+      echo.innerHTML = `<span style="color:var(--accent-2); font-weight:bold;">lofty></span> ${textInput}`;
+      DOM.out.appendChild(echo);
+      DOM.out.scrollTop = DOM.out.scrollHeight;
+
+      try {
+        // Post raw request payload directly across the server boundary port
+        const response = await fetch('http://localhost:5000/api/command', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ command: textInput })
+        });
+
+        const dataMatrix = await response.json();
+        
+        // Print text response via typing engine pipeline
+        if(dataMatrix.reply) {
+          await streamPrintText(dataMatrix.reply, "ai-bubble");
+        }
+
+        // Process any returned structured telemetry components to create cards
+        if (dataMatrix.payload) {
+          injectCardNode(dataMatrix.payload.type, dataMatrix.payload);
+        }
+
+      } catch (err) {
+        const errLine = document.createElement('div');
+        errLine.className = 'output-row err-msg';
+        errLine.textContent = `[CORE FAILURE] Unable to contact local application controller server layer. Verify app.py is run.`;
+        DOM.out.appendChild(errLine);
+      }
+      DOM.out.scrollTop = DOM.out.scrollHeight;
+    }
+
+    DOM.input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        const cmd = DOM.input.value;
+        DOM.input.value = '';
+        transmissionPipeline(cmd);
+      }
+    });
+
+    function executePreset(text) {
+      transmissionPipeline(text);
+    }
+
+    window.onload = () => { GraphEngine.init(); };
+  </script>
+</body>
+</html>

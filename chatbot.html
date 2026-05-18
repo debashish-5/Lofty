@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lofty Terminal // Cyber Deck AI</title>
+  <style>
+    :root {
+      --bg: #000000;
+      --panel: rgba(7, 9, 12, 0.94);
+      --panel-2: rgba(3, 5, 8, 0.98);
+      --line: rgba(255,255,255,0.08);
+      --line-soft: rgba(255,255,255,0.04);
+      --text: #e8f1ec;
+      --muted: #7b8b93;
+      --dim: #52616a;
+      --accent: #72ffbf;
+      --accent2: #6ad7ff;
+      --accent3: #a78bfa;
+      --warn: #ffd166;
+      --error: #ff6b6b;
+      --radius: 16px;
+    }
+
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #000;
+      color: var(--text);
+      font-family: "JetBrains Mono", "Cascadia Mono", "IBM Plex Mono", Consolas, monospace;
+      -webkit-font-smoothing: none;
+      -moz-osx-font-smoothing: auto;
+      font-synthesis: none;
+      text-rendering: geometricPrecision;
+    }
+
+    body {
+      background:
+        radial-gradient(circle at 50% 10%, rgba(114,255,191,0.06), transparent 28%),
+        radial-gradient(circle at 20% 90%, rgba(106,215,255,0.05), transparent 22%),
+        linear-gradient(180deg, #000 0%, #020304 100%);
+    }
+
+    .fx-layer { position: fixed; inset: 0; pointer-events: none; z-index: 9999; }
+    .scanlines::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(
+        to bottom,
+        rgba(255,255,255,0.02) 0px,
+        rgba(255,255,255,0.01) 1px,
+        transparent 2px,
+        transparent 4px
+      );
+      opacity: 0.12;
+      animation: scan 8s linear infinite;
+    }
+    @keyframes scan { from { transform: translateY(0); } to { transform: translateY(8px); } }
+    .noise {
+      opacity: 0.05;
+      mix-blend-mode: screen;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.95' numOctaves='2' stitchTiles='stitch'/></filter><rect width='180' height='180' filter='url(%23n)'/></svg>");
+      background-size: 180px 180px;
+    }
+    .vignette { box-shadow: inset 0 0 150px rgba(0,0,0,0.9); }
+
+    /* INTRO */
+    #introScreen {
+      position: fixed;
+      inset: 0;
+      z-index: 10000;
+      background: #000;
+      transition: opacity 0.45s ease, transform 0.45s ease;
+    }
+    #introVideo {
+      width: 100vw;
+      height: 100vh;
+      object-fit: cover;
+      display: block;
+      background: #000;
+      filter: saturate(0.95) contrast(1.05);
+    }
+    .intro-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 22px;
+      pointer-events: none;
+      background: linear-gradient(180deg, rgba(0,0,0,0.15), rgba(0,0,0,0.4));
+    }
+    .intro-badge {
+      width: fit-content;
+      padding: 9px 12px;
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 999px;
+      background: rgba(0,0,0,0.6);
+      letter-spacing: 0.28em;
+      font-size: 11px;
+      color: var(--accent);
+    }
+    .intro-copy { align-self: flex-end; max-width: 740px; text-align: right; }
+    .intro-title {
+      margin: 0 0 10px;
+      font-size: clamp(34px, 4.2vw, 62px);
+      line-height: 0.98;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      color: var(--accent);
+    }
+    .intro-sub { margin: 0; color: #b9c7c1; line-height: 1.65; font-size: 14px; }
+    .skipHint {
+      align-self: flex-end;
+      width: fit-content;
+      padding: 8px 12px;
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 999px;
+      background: rgba(0,0,0,0.72);
+      color: #9ba7b0;
+      font-size: 12px;
+    }
+
+    /* APP */
+    #appScreen { position: fixed; inset: 0; z-index: 1; display: none; }
+    #appScreen.active { display: block; }
+
+    .deck-grid {
+      width: 100%;
+      height: 100%;
+      display: grid;
+      grid-template-columns: 320px minmax(0, 1fr) 350px;
+      grid-template-rows: 72px 1fr;
+      gap: 12px;
+      padding: 12px;
+    }
+
+    .glass-card {
+      position: relative;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.005));
+      background-color: var(--panel);
+      overflow: hidden;
+      box-shadow: none;
+    }
+    .glass-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      border-radius: var(--radius);
+      border: 1px solid rgba(255,255,255,0.02);
+    }
+
+    .header-panel {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 18px;
+    }
+    .brand {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      font-size: 15px;
+      font-weight: 800;
+      letter-spacing: 0.18em;
+    }
+    .brand span:last-child { color: var(--accent); }
+    .stat-cluster { display: flex; gap: 28px; align-items: center; flex-wrap: wrap; }
+    .stat-node { display: flex; flex-direction: column; gap: 4px; }
+    .stat-lbl { font-size: 9px; text-transform: uppercase; letter-spacing: 0.22em; color: var(--muted); font-weight: 700; }
+    .stat-val { font-size: 13px; font-weight: 700; color: var(--text); }
+
+    .sidebar-layout { display: flex; flex-direction: column; gap: 12px; min-height: 0; }
+    .panel-hdr {
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+      padding: 12px 16px; border-bottom: 1px solid var(--line-soft); background: rgba(0,0,0,0.12);
+    }
+    .panel-title {
+      font-size: 10px; font-weight: 800; letter-spacing: 0.26em; text-transform: uppercase;
+      color: var(--accent);
+    }
+    .live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent2); }
+
+    .terminal-space { display: flex; flex-direction: column; min-height: 0; }
+    .terminal-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 16px; border-bottom: 1px solid var(--line-soft); background: rgba(0,0,0,0.16);
+    }
+    .terminal-header .left { display: flex; align-items: center; gap: 10px; }
+    .dots { display: flex; gap: 6px; }
+    .dot { width: 10px; height: 10px; border-radius: 50%; background: #13212a; border: 1px solid #22303a; }
+    .term-name { font-size: 13px; letter-spacing: 0.22em; color: #dce9e3; text-transform: uppercase; }
+    .status { font-size: 12px; color: var(--muted); }
+
+    .terminal-body {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      padding: 16px;
+      white-space: pre-wrap;
+      line-height: 1.7;
+      font-size: 14px;
+      scrollbar-width: thin;
+      scrollbar-color: #17242d #07090b;
+      font-variant-ligatures: none;
+    }
+    .terminal-body::-webkit-scrollbar { width: 10px; }
+    .terminal-body::-webkit-scrollbar-thumb { background: #17242d; border: 2px solid #07090b; border-radius: 10px; }
+    .terminal-body::-webkit-scrollbar-track { background: #07090b; }
+
+    .input-bar {
+      display: flex; align-items: center; gap: 10px;
+      padding: 14px 16px;
+      border-top: 1px solid var(--line-soft);
+      background: rgba(0,0,0,0.18);
+    }
+    .prompt {
+      color: var(--accent);
+      white-space: nowrap;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+    }
+    .cmd-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 15px;
+      caret-color: var(--accent);
+      font-variant-ligatures: none;
+    }
+    .cmd-input::placeholder { color: #39525b; }
+    .hint { font-size: 11px; color: #62737c; white-space: nowrap; }
+
+    .chart-box { padding: 12px; }
+    .graph {
+      height: 98px;
+      border: 1px solid #162129;
+      border-radius: 12px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.004));
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 10px;
+    }
+    #telemetryCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      background: transparent;
+    }
+
+    .mini-list { display: grid; gap: 8px; padding: 12px; }
+    .mini-item {
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+      border: 1px solid #132029; border-radius: 12px; padding: 10px; background: rgba(0,0,0,0.2);
+      color: #d7e4df; font-size: 12px;
+    }
+    .mini-item .r { color: var(--muted); }
+
+    .chip-row { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px; }
+    .chip {
+      padding: 7px 10px; border: 1px solid #162129; border-radius: 999px; color: #9fb0b8;
+      background: rgba(0,0,0,0.2); font-size: 12px; cursor: pointer; user-select: none;
+    }
+    .chip:hover { border-color: rgba(114,255,191,0.35); color: #e8f7ef; }
+
+    .card-host {
+      flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 12px;
+    }
+    .dynamic-card {
+      border: 1px solid #152129; border-radius: 14px;
+      background: linear-gradient(145deg, rgba(255,255,255,0.02), rgba(0,0,0,0.24));
+      padding: 14px; position: relative; overflow: hidden; animation: cardIn 0.35s ease-out;
+    }
+    .dynamic-card::before {
+      content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--accent);
+    }
+    @keyframes cardIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .card-hdr {
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+      margin-bottom: 10px; font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase;
+      color: var(--accent2); font-weight: 800;
+    }
+    .card-row {
+      display: flex; justify-content: space-between; gap: 12px;
+      padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.04);
+      font-size: 12px;
+    }
+    .card-row span:last-child { color: var(--muted); }
+    .card-link {
+      display: inline-flex; align-items: center; gap: 8px; margin-top: 10px;
+      padding: 8px 10px; border-radius: 10px; border: 1px solid rgba(114,255,191,0.22);
+      background: rgba(114,255,191,0.08); color: #dffcf0; text-decoration: none; font-size: 12px; font-weight: 700;
+      overflow-wrap: anywhere;
+    }
+    .card-link:hover { background: rgba(114,255,191,0.18); }
+
+    .pill {
+      padding: 4px 10px; border-radius: 999px; border: 1px solid #1d2a32;
+      font-size: 10px; text-transform: uppercase; letter-spacing: 0.18em; color: #94a7af;
+      background: rgba(255,255,255,0.02);
+    }
+    .pill.active { color: var(--accent); border-color: rgba(114,255,191,0.35); }
+
+    .line { margin-bottom: 7px; word-break: break-word; }
+    .dim { color: #91a0a9; }
+    .accent { color: var(--accent); }
+    .accent2 { color: var(--accent2); }
+    .accent3 { color: var(--accent3); }
+    .warn { color: var(--warn); }
+    .error { color: var(--error); }
+    .ai-bubble {
+      border-left: 3px solid var(--accent);
+      padding-left: 14px;
+      background: linear-gradient(90deg, rgba(114,255,191,0.04), transparent);
+      margin: 12px 0;
+    }
+
+    .toolbar {
+      display: flex; gap: 8px; flex-wrap: wrap; padding: 12px 16px;
+      border-top: 1px solid var(--line-soft); background: rgba(0,0,0,0.15);
+    }
+    .tool-btn {
+      border: 1px solid #1c2a33; background: rgba(255,255,255,0.02);
+      color: #bfd0d7; border-radius: 10px; padding: 8px 10px;
+      font-family: inherit; font-size: 12px; cursor: pointer;
+    }
+    .tool-btn:hover { border-color: rgba(114,255,191,0.34); color: #effff8; }
+
+    .assistant-card {
+      display: none; padding: 14px; border: 1px solid #152129; border-radius: 14px;
+      background: rgba(0,0,0,0.22); margin: 12px;
+    }
+    .assistant-card.active { display: block; }
+    .assistant-card h2 { margin: 0 0 8px; color: var(--accent); font-size: 18px; }
+    .assistant-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 12px; }
+    .assistant-box { border: 1px solid #162129; border-radius: 12px; padding: 10px; background: rgba(0,0,0,0.18); }
+    .assistant-box .t { font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: #7e919a; }
+    .assistant-box .b { margin-top: 6px; color: #dde9e4; font-size: 12px; line-height: 1.5; }
+
+    .footer-help {
+      padding: 10px 14px; display: flex; justify-content: space-between; gap: 10px; align-items: center;
+      border-top: 1px solid var(--line-soft); background: rgba(0,0,0,0.14); font-size: 11px; color: #72808a;
+    }
+    .kbd {
+      padding: 5px 8px; border: 1px solid #20303a; border-bottom-width: 2px; border-radius: 8px;
+      background: #081015; color: #bfd0d7; font-size: 11px;
+    }
+
+    @media (max-width: 1240px) {
+      .deck-grid { grid-template-columns: 1fr; grid-template-rows: auto; overflow-y: auto; }
+      .header-panel { grid-column: auto; }
+    }
+  </style>
+</head>
+<body>
+  <div class="fx-layer scanlines"></div>
+  <div class="fx-layer noise"></div>
+  <div class="fx-layer vignette"></div>
+
+  <div id="introScreen">
+    <video id="introVideo" autoplay muted playsinline preload="auto">
+        <source src="/static/assets/Untitled%20Project.mp4" type="video/mp4">
+    </video>
+    <div class="intro-overlay">
+      <div class="intro-badge">LOFTY // BOOT SEQUENCE</div>
+      <div class="intro-copy">
+        <h1 class="intro-title">Terminal intelligence online.</h1>
+        <p class="intro-sub">Intro video first, then a cinematic black terminal with voice, browser tools, clickable live links, Ollama chat, and expandable assistant panels.</p>
+      </div>
+      <div class="skipHint">click or press any key to enter terminal</div>
+    </div>
+  </div>
+
+  <div id="appScreen">
+    <div class="deck-grid">
+      <header class="glass-card header-panel">
+        <div class="brand"><span>LOFTY//</span><span id="headerLabel">CORE-X</span></div>
+        <div class="stat-cluster">
+          <div class="stat-node"><span class="stat-lbl">session</span><span class="stat-val" id="sessionValue">ready</span></div>
+          <div class="stat-node"><span class="stat-lbl">model</span><span class="stat-val" id="modelValue">mistral</span></div>
+          <div class="stat-node"><span class="stat-lbl">clock</span><span class="stat-val" id="clockValue">00:00:00</span></div>
+        </div>
+      </header>
+
+      <aside class="sidebar-layout">
+        <div class="glass-card">
+          <div class="panel-hdr"><span class="panel-title">realtime telemetry</span><div class="live-dot"></div></div>
+          <div class="chart-box">
+            <div class="graph"><canvas id="telemetryCanvas"></canvas></div>
+            <div class="mini-list">
+              <div class="mini-item"><span>cpu</span><span class="r" id="cpuVal">18%</span></div>
+              <div class="mini-item"><span>memory</span><span class="r" id="memVal">41%</span></div>
+              <div class="mini-item"><span>network</span><span class="r" id="netVal">12ms</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="glass-card" style="flex: 1; min-height: 0;">
+          <div class="panel-hdr"><span class="panel-title">directives</span><div class="pill active" id="modePill">shell</div></div>
+          <div class="chip-row" id="quickChips">
+            <div class="chip" data-cmd="lofty:help">lofty:help</div>
+            <div class="chip" data-cmd="lofty:assistant">lofty:assistant</div>
+            <div class="chip" data-cmd="lofty:new">lofty:new</div>
+            <div class="chip" data-cmd="lofty:voice">lofty:voice</div>
+            <div class="chip" data-cmd="lofty:link https://example.com">lofty:link</div>
+            <div class="chip" data-cmd="lofty:search latest ai news">lofty:search</div>
+          </div>
+          <div class="mini-list">
+            <div class="mini-item"><span>voice</span><span class="r" id="voiceState">off</span></div>
+            <div class="mini-item"><span>ollama</span><span class="r" id="ollamaState">disconnected</span></div>
+            <div class="mini-item"><span>assistant</span><span class="r">open</span></div>
+          </div>
+        </div>
+      </aside>
+
+      <main class="glass-card terminal-space" id="terminalPanel">
+        <div class="terminal-header">
+          <div class="left">
+            <div class="dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+            <div class="term-name">MAIN — bash</div>
+          </div>
+          <div class="status" id="statusText">awaiting command</div>
+        </div>
+
+        <div class="terminal-body" id="terminalBody" aria-live="polite"></div>
+
+        <div class="input-bar">
+          <div class="prompt" id="promptTag">lofty&gt;</div>
+          <input id="cmdInput" class="cmd-input" type="text" autocomplete="off" spellcheck="false" placeholder="type lofty:help to begin..." />
+          <div class="hint">Enter</div>
+        </div>
+
+        <div class="toolbar">
+          <button class="tool-btn" id="voiceBtn">Speak</button>
+          <button class="tool-btn" id="speakBtn">Reply Voice</button>
+          <button class="tool-btn" id="connectBtn">Connect Ollama</button>
+          <button class="tool-btn" id="themeBtn">Theme</button>
+          <button class="tool-btn" id="clearBtn">Clear</button>
+        </div>
+
+        <div class="footer-help">
+          <div><span class="kbd">↑</span> history <span class="kbd">Enter</span> run <span class="kbd">Esc</span> focus</div>
+          <div>browser voice + local Ollama + clickable link tools</div>
+        </div>
+      </main>
+
+      <aside class="sidebar-layout">
+        <div class="glass-card" style="flex: 1; min-height: 0;">
+          <div class="panel-hdr"><span class="panel-title">dynamic tools</span><div class="live-dot"></div></div>
+          <div class="card-host" id="cardHost">
+            <div class="dynamic-card" style="opacity:0.85;">
+              <div class="card-hdr"><span>system housing</span><span>ready</span></div>
+              <div class="card-row"><span>link tool</span><span>clickable</span></div>
+              <div class="card-row"><span>voice tool</span><span>available</span></div>
+              <div class="card-row"><span>ollama</span><span>local llm</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="glass-card">
+          <div class="panel-hdr"><span class="panel-title">assistant panel</span></div>
+          <div class="assistant-card active" id="assistantCard">
+            <h2>Assistant view</h2>
+            <p>Use <span class="accent">lofty:assistant</span> to keep this panel active, or use it as a dedicated workspace for your next chat UI layer.</p>
+            <div class="assistant-grid">
+              <div class="assistant-box"><div class="t">chat</div><div class="b">terminal conversation flow</div></div>
+              <div class="assistant-box"><div class="t">voice</div><div class="b">speech in browser</div></div>
+              <div class="assistant-box"><div class="t">tools</div><div class="b">open links and actions</div></div>
+              <div class="assistant-box"><div class="t">model</div><div class="b">ollama mistral / custom</div></div>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <script>
+    const CONFIG = {
+      ollamaModel: localStorage.getItem('lofty_ollama_model') || 'mistral',
+      threadId: localStorage.getItem('lofty_thread_id') || `thread-${Math.random().toString(36).slice(2, 8)}`,
+    };
+
+    const introScreen = document.getElementById('introScreen');
+    const introVideo = document.getElementById('introVideo');
+    const appScreen = document.getElementById('appScreen');
+    const terminalBody = document.getElementById('terminalBody');
+    const cmdInput = document.getElementById('cmdInput');
+    const statusText = document.getElementById('statusText');
+    const promptTag = document.getElementById('promptTag');
+    const modePill = document.getElementById('modePill');
+    const voiceState = document.getElementById('voiceState');
+    const ollamaState = document.getElementById('ollamaState');
+    const sessionValue = document.getElementById('sessionValue');
+    const modelValue = document.getElementById('modelValue');
+    const clockValue = document.getElementById('clockValue');
+    const cpuVal = document.getElementById('cpuVal');
+    const memVal = document.getElementById('memVal');
+    const netVal = document.getElementById('netVal');
+    const headerLabel = document.getElementById('headerLabel');
+    const cardHost = document.getElementById('cardHost');
+    const assistantCard = document.getElementById('assistantCard');
+    const quickChips = document.getElementById('quickChips');
+    const voiceBtn = document.getElementById('voiceBtn');
+    const speakBtn = document.getElementById('speakBtn');
+    const connectBtn = document.getElementById('connectBtn');
+    const themeBtn = document.getElementById('themeBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const telemetryCanvas = document.getElementById('telemetryCanvas');
+    const telemetryCtx = telemetryCanvas ? telemetryCanvas.getContext('2d') : null;
+
+    const telemetry = {
+      cpu: Array(90).fill(24),
+      mem: Array(90).fill(41),
+      net: Array(90).fill(14),
+      gpu: Array(90).fill(28)
+    };
+
+    const state = {
+      sessionId: `SID-${Math.random().toString(36).slice(2, 8).toUpperCase()}`,
+      history: [],
+      historyIndex: -1,
+      mode: 'shell',
+      voiceEnabled: false,
+      speakingEnabled: true,
+      ollamaConnected: false,
+      requestSeq: 0,
+      lastSubmitted: { text: '', time: 0 },
+      lastLog: { text: '', time: 0 },
+      themes: ['midnight', 'crimson', 'neon']
+    };
+
+    function esc(str) {
+      return String(str).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
+    }
+
+    function scrollBottom() {
+      terminalBody.scrollTop = terminalBody.scrollHeight;
+    }
+
+    function logLine(html, cls = '') {
+      const text = html.replace(/<[^>]*>/g, '').trim();
+      const now = Date.now();
+      if (state.lastLog.text === text && now - state.lastLog.time < 500) return;
+      state.lastLog = { text, time: now };
+      const div = document.createElement('div');
+      div.className = `line ${cls}`.trim();
+      div.innerHTML = html;
+      terminalBody.appendChild(div);
+      scrollBottom();
+    }
+
+    function toolCard({ title, subtitle = '', rows = [], linkText = '', href = '' }) {
+      const card = document.createElement('div');
+      card.className = 'dynamic-card';
+      card.innerHTML = `
+        <div class="card-hdr"><span>${esc(title)}</span><span>${esc(subtitle)}</span></div>
+        ${rows.map(r => `<div class="card-row"><span>${esc(r[0])}</span><span>${esc(r[1])}</span></div>`).join('')}
+        ${href ? `<a class="card-link" href="${esc(href)}" target="_blank" rel="noopener noreferrer">${esc(linkText || href)} OPEN</a>` : ''}
+      `;
+      cardHost.prepend(card);
+    }
+
+    function setTheme(name) {
+      if (name === 'crimson') {
+        document.documentElement.style.setProperty('--accent', '#ff0055');
+        document.documentElement.style.setProperty('--accent2', '#ff4343');
+        document.documentElement.style.setProperty('--accent3', '#e11d48');
+      } else if (name === 'neon') {
+        document.documentElement.style.setProperty('--accent', '#39ff14');
+        document.documentElement.style.setProperty('--accent2', '#05ffa1');
+        document.documentElement.style.setProperty('--accent3', '#10b981');
+      } else {
+        document.documentElement.style.setProperty('--accent', '#72ffbf');
+        document.documentElement.style.setProperty('--accent2', '#6ad7ff');
+        document.documentElement.style.setProperty('--accent3', '#a78bfa');
+      }
+      document.body.setAttribute('data-theme', name);
+    }
+
+    function setMode(mode) {
+      state.mode = mode;
+      if (mode === 'assistant') {
+        promptTag.textContent = 'lofty_AI>';
+        headerLabel.textContent = 'NEURAL-CHAT';
+      } else {
+        promptTag.textContent = 'lofty>';
+        headerLabel.textContent = 'CORE-X';
+      }
+      modePill.textContent = mode;
+    }
+
+    function updateStats() {
+      const now = new Date();
+      clockValue.textContent = now.toLocaleTimeString([], { hour12: false });
+      cpuVal.textContent = `${Math.floor(12 + Math.random() * 38)}%`;
+      memVal.textContent = `${Math.floor(24 + Math.random() * 42)}%`;
+      netVal.textContent = `${Math.floor(8 + Math.random() * 22)}ms`;
+      sessionValue.textContent = state.sessionId;
+      modelValue.textContent = CONFIG.ollamaModel;
+      voiceState.textContent = state.voiceEnabled ? 'on' : 'off';
+      ollamaState.textContent = state.ollamaConnected ? 'connected' : 'disconnected';
+    }
+    setInterval(updateStats, 1000);
+
+    function resizeTelemetry() {
+      if (!telemetryCanvas || !telemetryCtx) return;
+      const rect = telemetryCanvas.getBoundingClientRect();
+      const dpr = Math.max(1, window.devicePixelRatio || 1);
+      telemetryCanvas.width = Math.max(1, Math.floor(rect.width * dpr));
+      telemetryCanvas.height = Math.max(1, Math.floor(rect.height * dpr));
+      telemetryCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      telemetryCtx.imageSmoothingEnabled = true;
+    }
+
+    function stepSeries(series, min, max, volatility) {
+      const last = series[series.length - 1] ?? min;
+      let next = last + (Math.random() - 0.5) * volatility;
+      if (next < min) next = min + Math.random() * 4;
+      if (next > max) next = max - Math.random() * 4;
+      series.push(next);
+      if (series.length > 90) series.shift();
+    }
+
+    function drawLine(ctx, series, color, w, h) {
+      const step = w / (series.length - 1);
+      ctx.save();
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2.5;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.shadowColor = color;
+      ctx.shadowBlur = 10;
+      ctx.beginPath();
+      for (let i = 0; i < series.length; i++) {
+        const x = i * step;
+        const y = h - (series[i] / 100) * h;
+        if (i === 0) {
+          ctx.moveTo(x, y);
+        } else {
+          const px = (i - 1) * step;
+          const py = h - (series[i - 1] / 100) * h;
+          const mx = (px + x) / 2;
+          const my = (py + y) / 2;
+          ctx.quadraticCurveTo(px, py, mx, my);
+        }
+      }
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function renderTelemetry() {
+      if (!telemetryCtx || !telemetryCanvas) return;
+      requestAnimationFrame(renderTelemetry);
+      const rect = telemetryCanvas.getBoundingClientRect();
+      if (!rect.width || !rect.height) return;
+      const ctx = telemetryCtx;
+      const w = rect.width;
+      const h = rect.height;
+
+      ctx.clearRect(0, 0, w, h);
+
+      ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+      ctx.lineWidth = 1;
+      for (let i = 0; i <= 5; i++) {
+        const y = (h / 5) * i;
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+      }
+      for (let i = 0; i <= 8; i++) {
+        const x = (w / 8) * i;
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
+      }
+
+      stepSeries(telemetry.cpu, 18, 82, 4.5);
+      stepSeries(telemetry.mem, 24, 70, 2.5);
+      stepSeries(telemetry.net, 8, 52, 8.5);
+      stepSeries(telemetry.gpu, 12, 88, 5.2);
+
+      drawLine(ctx, telemetry.cpu, getComputedStyle(document.documentElement).getPropertyValue('--accent').trim(), w, h);
+      drawLine(ctx, telemetry.mem, getComputedStyle(document.documentElement).getPropertyValue('--accent2').trim(), w, h);
+      drawLine(ctx, telemetry.net, '#ff5d8f', w, h);
+      drawLine(ctx, telemetry.gpu, getComputedStyle(document.documentElement).getPropertyValue('--accent3').trim(), w, h);
+    }
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let recognizer = null;
+    if (SpeechRecognition) {
+      recognizer = new SpeechRecognition();
+      recognizer.lang = 'en-US';
+      recognizer.interimResults = false;
+      recognizer.maxAlternatives = 1;
+    }
+
+    function speak(text) {
+      if (!state.speakingEnabled || !('speechSynthesis' in window)) return;
+      const utterance = new SpeechSynthesisUtterance(String(text).replace(/<[^>]*>/g, ' '));
+      utterance.rate = 1;
+      utterance.pitch = 1;
+      utterance.lang = 'en-US';
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.speak(utterance);
+    }
+
+    async function startVoiceInput() {
+      if (!recognizer) {
+        logLine(`<span class="warn">Voice recognition is not supported in this browser.</span>`);
+        return;
+      }
+      statusText.textContent = 'listening';
+      logLine(`<span class="accent2">Voice mode active.</span> Speak now.`);
+      recognizer.start();
+      recognizer.onresult = (event) => {
+        const text = event.results[0][0].transcript.trim();
+        if (!text) return;
+        cmdInput.value = '';
+        submitCommand(text, true);
+      };
+      recognizer.onerror = (event) => {
+        logLine(`<span class="error">Voice error:</span> ${esc(event.error || 'unknown')}`);
+        statusText.textContent = 'idle';
+      };
+      recognizer.onend = () => {
+        statusText.textContent = state.ollamaConnected ? 'ready' : 'idle';
+      };
+    }
+
+    async function callBackend(sessionId, message, model) {
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ session_id: sessionId, message, model })
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return res.json();
+    }
+
+    function applyLocalTool(message) {
+      const text = message.trim();
+      const lower = text.toLowerCase();
+
+      if (lower === 'lofty:help') {
+        logLine(`<span class="accent">Available commands:</span>`);
+        logLine(`<span class="dim">lofty:help</span> — show commands`);
+        logLine(`<span class="dim">lofty:assistant</span> — open assistant panel`);
+        logLine(`<span class="dim">lofty:new</span> — new session`);
+        logLine(`<span class="dim">lofty:history &lt;session-id&gt;</span> — show history`);
+        logLine(`<span class="dim">lofty:voice</span> — toggle voice recognition`);
+        logLine(`<span class="dim">lofty:speak on/off</span> — toggle speech output`);
+        logLine(`<span class="dim">lofty:theme midnight|crimson|neon</span> — change theme`);
+        logLine(`<span class="dim">lofty:model mistral</span> — set Ollama model`);
+        logLine(`<span class="dim">lofty:link &lt;url&gt;</span> — clickable link tool`);
+        logLine(`<span class="dim">lofty:search &lt;query&gt;</span> — clickable search card`);
+        return true;
+      }
+
+      if (lower === 'lofty:assistant') {
+        setMode('assistant');
+        assistantCard.classList.add('active');
+        assistantCard.innerHTML = `
+          <h2>Assistant view</h2>
+          <p>Use <span class="accent">lofty:assistant</span> to keep this panel active, or use it as a dedicated workspace for your next chat UI layer.</p>
+          <div class="assistant-grid">
+            <div class="assistant-box"><div class="t">chat</div><div class="b">terminal conversation flow</div></div>
+            <div class="assistant-box"><div class="t">voice</div><div class="b">speech in browser</div></div>
+            <div class="assistant-box"><div class="t">tools</div><div class="b">open links and actions</div></div>
+            <div class="assistant-box"><div class="t">model</div><div class="b">ollama mistral / custom</div></div>
+          </div>
+        `;
+        logLine(`<span class="accent">Assistant panel opened.</span>`);
+        return true;
+      }
+
+      if (lower === 'lofty:new') {
+        state.sessionId = `SID-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
+        state.history = [];
+        state.historyIndex = -1;
+        terminalBody.innerHTML = '';
+        setMode('shell');
+        logLine(`<span class="accent">New session created.</span> Session ID: <span class="prompt">${esc(state.sessionId)}</span>`);
+        logLine(`<span class="dim">Command history cleared. The shell is fresh.</span>`);
+        toolCard({ title: 'SESSION RESET', subtitle: 'CLEAN', rows: [['session', state.sessionId], ['history', 'cleared'], ['mode', 'shell']] });
+        updateStats();
+        return true;
+      }
+
+      if (lower.startsWith('lofty:history')) {
+        const id = text.split(/\s+/)[1] || state.sessionId;
+        if (id !== state.sessionId) {
+          logLine(`<span class="warn">No local history found for ${esc(id)}.</span>`);
+          return true;
+        }
+        if (!state.history.length) {
+          logLine(`<span class="dim">No commands stored in this session yet.</span>`);
+          return true;
+        }
+        logLine(`<span class="accent">History for ${esc(state.sessionId)}:</span>`);
+        state.history.forEach((cmd, i) => logLine(`<span class="dim">${i + 1}.</span> ${esc(cmd)}`));
+        return true;
+      }
+
+      if (lower.startsWith('lofty:theme')) {
+        const name = text.split(/\s+/)[1] || 'midnight';
+        if (!['midnight', 'crimson', 'neon'].includes(name)) {
+          logLine(`<span class="error">Unknown theme.</span> Use midnight, crimson, or neon.`);
+        } else {
+          setTheme(name);
+          localStorage.setItem('lofty_theme', name);
+          logLine(`<span class="accent">Theme switched to ${esc(name)}.</span>`);
+          toolCard({ title: 'THEME SWITCH', subtitle: name.toUpperCase(), rows: [['accent', name], ['shell', 'reactive'], ['glow', 'enabled']] });
+        }
+        return true;
+      }
+
+      if (lower === 'lofty:voice') {
+        state.voiceEnabled = !state.voiceEnabled;
+        voiceState.textContent = state.voiceEnabled ? 'on' : 'off';
+        logLine(`<span class="accent">Voice recognition ${state.voiceEnabled ? 'enabled' : 'disabled'}.</span>`);
+        if (state.voiceEnabled && recognizer) startVoiceInput();
+        return true;
+      }
+
+      if (lower.startsWith('lofty:speak')) {
+        const arg = (text.split(/\s+/)[1] || '').toLowerCase();
+        state.speakingEnabled = arg !== 'off';
+        speakBtn.textContent = state.speakingEnabled ? 'Reply Voice' : 'Reply Off';
+        logLine(`<span class="accent">Speech output ${state.speakingEnabled ? 'enabled' : 'disabled'}.</span>`);
+        return true;
+      }
+
+      if (lower.startsWith('lofty:model')) {
+        const model = text.split(/\s+/)[1];
+        if (!model) {
+          logLine(`<span class="warn">Usage:</span> lofty:model mistral`);
+        } else {
+          CONFIG.ollamaModel = model;
+          localStorage.setItem('lofty_ollama_model', model);
+          modelValue.textContent = model;
+          logLine(`<span class="accent">Model set to ${esc(model)}.</span>`);
+          toolCard({ title: 'MODEL UPDATE', subtitle: 'OLLAMA', rows: [['model', model], ['base url', '/api/chat'], ['thread', state.sessionId]] });
+        }
+        return true;
+      }
+
+      if (lower.startsWith('lofty:link')) {
+        let url = text.replace(/^lofty:link\s+/i, '').trim();
+        if (!url) {
+          logLine(`<span class="warn">Usage:</span> lofty:link https://example.com`);
+        } else {
+          if (!/^https?:\/\//i.test(url)) url = `https://${url}`;
+          toolCard({ title: 'LIVE LINK TOOL', subtitle: 'CLICK TO OPEN', rows: [['protocol', 'https'], ['state', 'ready'], ['source', 'browser tool']], linkText: 'Open link', href: url });
+          logLine(`<span class="accent2">Clickable link card created:</span> <a href="${esc(url)}" target="_blank" rel="noopener noreferrer" style="color:var(--accent)">${esc(url)}</a>`);
+        }
+        return true;
+      }
+
+      if (lower.startsWith('lofty:search')) {
+        const query = text.replace(/^lofty:search\s+/i, '').trim();
+        if (!query) {
+          logLine(`<span class="warn">Usage:</span> lofty:search latest ai news`);
+        } else {
+          const url = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+          toolCard({ title: 'REALTIME SEARCH TOOL', subtitle: 'WEB OPEN', rows: [['query', query], ['engine', 'google search'], ['state', 'clickable']], linkText: `Search: ${query}`, href: url });
+          logLine(`<span class="accent">Search card ready:</span> <a href="${esc(url)}" target="_blank" rel="noopener noreferrer" style="color:var(--accent)">${esc(query)}</a>`);
+        }
+        return true;
+      }
+
+      if (lower === 'lofty:clear') {
+        terminalBody.innerHTML = '';
+        logLine(`<span class="dim">Terminal cleared.</span>`);
+        return true;
+      }
+
+      if (lower === 'lofty:connect') return false;
+      return false;
+    }
+
+    async function submitCommand(raw, fromVoice = false) {
+      const input = raw.trim();
+      if (!input) return;
+      const now = Date.now();
+      if (state.lastSubmitted.text === input && now - state.lastSubmitted.time < 700) return;
+      state.lastSubmitted = { text: input, time: now };
+
+      state.history.push(input);
+      state.historyIndex = state.history.length;
+      logLine(`<span class="prompt">${state.mode === 'assistant' ? 'lofty_AI&gt;' : 'lofty&gt;'}</span> ${esc(input)}`);
+      statusText.textContent = 'running';
+
+      if (applyLocalTool(input)) {
+        statusText.textContent = 'idle';
+        updateStats();
+        return;
+      }
+
+      if (input.toLowerCase() === 'lofty:connect') {
+        try {
+          const probe = await fetch('/api/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ session_id: state.sessionId, message: 'ping', model: CONFIG.ollamaModel })
+          });
+          if (!probe.ok) throw new Error(`HTTP ${probe.status}`);
+          state.ollamaConnected = true;
+          logLine(`<span class="accent">Ollama connected successfully.</span>`);
+        } catch (e) {
+          state.ollamaConnected = false;
+          logLine(`<span class="error">Ollama connection failed.</span> Check localhost:11434 or backend.`);
+        }
+        statusText.textContent = 'idle';
+        updateStats();
+        return;
+      }
+
+      const requestId = ++state.requestSeq;
+      try {
+        const data = await callBackend(state.sessionId, input, CONFIG.ollamaModel);
+        if (requestId !== state.requestSeq) return;
+        state.ollamaConnected = true;
+        const reply = data?.reply ? String(data.reply) : 'No reply received.';
+        logLine(`<span class="accent">Lofty</span>: ${esc(reply)}`, 'ai-bubble');
+        speak(reply);
+        if (data?.tool?.type === 'link' && data.tool.url) {
+          toolCard({ title: data.tool.title || 'LIVE LINK TOOL', subtitle: 'CLICK TO OPEN', rows: [['url', data.tool.url], ['state', 'ready']], linkText: data.tool.label || 'Open link', href: data.tool.url });
+        }
+      } catch (err) {
+        if (requestId !== state.requestSeq) return;
+        state.ollamaConnected = false;
+        logLine(`<span class="warn">I could not reach the backend right now. Check /api/chat and Ollama.</span>`, 'ai-bubble');
+      } finally {
+        if (requestId === state.requestSeq) {
+          statusText.textContent = 'idle';
+          updateStats();
+        }
+      }
+    }
+
+    cmdInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const value = cmdInput.value;
+        cmdInput.value = '';
+        submitCommand(value);
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (state.historyIndex > 0) {
+          state.historyIndex--;
+          cmdInput.value = state.history[state.historyIndex] || '';
+        }
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (state.historyIndex < state.history.length - 1) {
+          state.historyIndex++;
+          cmdInput.value = state.history[state.historyIndex] || '';
+        } else {
+          state.historyIndex = state.history.length;
+          cmdInput.value = '';
+        }
+      }
+    });
+
+    document.addEventListener('click', () => cmdInput.focus());
+    quickChips.addEventListener('click', (e) => {
+      const chip = e.target.closest('.chip');
+      if (!chip) return;
+      cmdInput.value = chip.dataset.cmd || '';
+      cmdInput.focus();
+    });
+
+    voiceBtn.addEventListener('click', async () => {
+      state.voiceEnabled = true;
+      updateStats();
+      await startVoiceInput();
+    });
+
+    speakBtn.addEventListener('click', () => {
+      state.speakingEnabled = !state.speakingEnabled;
+      speakBtn.textContent = state.speakingEnabled ? 'Reply Voice' : 'Reply Off';
+      logLine(`<span class="accent">Speech output ${state.speakingEnabled ? 'enabled' : 'disabled'}.</span>`);
+    });
+
+    connectBtn.addEventListener('click', async () => {
+      logLine(`<span class="accent2">Testing local backend...</span>`);
+      await submitCommand('lofty:connect');
+    });
+
+    themeBtn.addEventListener('click', () => {
+      const current = document.body.getAttribute('data-theme') || 'midnight';
+      const index = (state.themes.indexOf(current) + 1) % state.themes.length;
+      const next = state.themes[index];
+      setTheme(next);
+      localStorage.setItem('lofty_theme', next);
+      logLine(`<span class="accent">Theme switched to ${esc(next)}.</span>`);
+    });
+
+    clearBtn.addEventListener('click', () => {
+      terminalBody.innerHTML = '';
+      state.lastLog = { text: '', time: 0 };
+      logLine(`<span class="dim">Terminal cleared.</span>`);
+    });
+
+    function enterApp() {
+      if (appScreen.classList.contains('active')) return;
+      introScreen.style.opacity = '0';
+      introScreen.style.transform = 'scale(1.01)';
+      setTimeout(() => {
+        introScreen.style.display = 'none';
+        appScreen.classList.add('active');
+        setTheme(localStorage.getItem('lofty_theme') || 'midnight');
+        cmdInput.focus();
+        logLine(`<span class="accent">Lofty Terminal online.</span>`);
+        logLine(`Session <span class="prompt">${esc(state.sessionId)}</span> established.`);
+        logLine(`Try <span class="prompt">lofty:help</span>, <span class="prompt">lofty:assistant</span>, <span class="prompt">lofty:voice</span>, <span class="prompt">lofty:link https://example.com</span>.`);
+        toolCard({ title: 'BOOT COMPLETE', subtitle: 'READY', rows: [['session', state.sessionId], ['model', CONFIG.ollamaModel], ['voice', 'optional']] });
+        updateStats();
+      }, 450);
+    }
+
+    function startApp() {
+      try { introVideo.playbackRate = 1.75; } catch (_) {}
+      introVideo.addEventListener('ended', enterApp, { once: true });
+      introVideo.addEventListener('error', enterApp, { once: true });
+      setTimeout(() => { if (!appScreen.classList.contains('active')) enterApp(); }, 2000);
+      introScreen.addEventListener('click', () => { try { introVideo.pause(); } catch (_) {} enterApp(); }, { once: true });
+      document.addEventListener('keydown', (e) => {
+        if (!appScreen.classList.contains('active') && e.key !== 'F5') {
+          try { introVideo.pause(); } catch (_) {}
+          enterApp();
+        }
+      }, { once: true });
+      resizeTelemetry();
+      renderTelemetry();
+      window.addEventListener('resize', resizeTelemetry);
+    }
+
+    startApp();
+  </script>
+</body>
+</html>

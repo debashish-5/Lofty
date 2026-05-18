@@ -437,13 +437,15 @@
 
 ```
   <nav class="nav-links" aria-label="Main navigation">
+    <a href="/">Home</a>
+    <a href="about.html">About</a>
     <a href="#features">Features</a>
     <a href="#voice">Voice</a>
     <a href="#tools">Tools</a>
     <a href="#memory">Memory</a>
   </nav>
 
-  <a class="nav-cta" href="#features">Explore</a>
+  <a class="nav-cta" href="index.html">Back home</a>
 </div>
 ```
 
@@ -467,7 +469,7 @@
     <div class="front-video">
       <div class="front-badge">Front feature video</div>
       <video autoplay muted loop playsinline>
-        <source src="services.mp4" type="video/mp4" />
+        <source src="static/assets/services.mp4" type="video/mp4" />
       </video>
     </div>
 
@@ -498,8 +500,8 @@
     <div class="video-stack">
       <article class="video-card" id="voice">
         <div class="video-frame">
-          <video autoplay muted loop playsinline>
-            <source src="https://dcfeefc985bc32e8174c90ccaf13952f.r2.cloudflarestorage.com/utazon/domo/3.mp4?x-id=GetObject&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=7e402670ec757dda70083bf1c3da10f1%2F20260515%2Fauto%2Fs3%2Faws4_request&X-Amz-Date=20260515T082739Z&X-Amz-Expires=600&X-Amz-SignedHeaders=host&X-Amz-Signature=8ae0b254494c1bbe7dbd98d2dea541b33981f2aa0eeed79b44bd9db3eb10036b" type="video/mp4" />
+          <video autoplay muted loop playsinline preload="auto" id="heroVideo">
+              <source src="/static/assets/2.mp4" type="video/mp4">
           </video>
         </div>
         <div class="video-copy">
@@ -518,8 +520,8 @@
 
       <article class="video-card" id="tools">
         <div class="video-frame">
-          <video autoplay muted loop playsinline>
-            <source src="https://dcfeefc985bc32e8174c90ccaf13952f.r2.cloudflarestorage.com/utazon/domo/2.mp4?x-id=GetObject&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=7e402670ec757dda70083bf1c3da10f1%2F20260515%2Fauto%2Fs3%2Faws4_request&X-Amz-Date=20260515T082739Z&X-Amz-Expires=600&X-Amz-SignedHeaders=host&X-Amz-Signature=f2340f49bfda6cf70064c5c31b5c6416459e2c7a6f6918f8f73d4d599197e000" type="video/mp4" />
+          <video autoplay muted loop playsinline preload="auto" id="heroVideo">
+              <source src="/static/assets/3.mp4" type="video/mp4">
           </video>
         </div>
         <div class="video-copy">
@@ -538,8 +540,8 @@
 
       <article class="video-card" id="memory">
         <div class="video-frame">
-          <video autoplay muted loop playsinline>
-            <source src="https://dcfeefc985bc32e8174c90ccaf13952f.r2.cloudflarestorage.com/utazon/domo/1.mp4?x-id=GetObject&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=7e402670ec757dda70083bf1c3da10f1%2F20260515%2Fauto%2Fs3%2Faws4_request&X-Amz-Date=20260515T082739Z&X-Amz-Expires=600&X-Amz-SignedHeaders=host&X-Amz-Signature=a492795f5d742223d86431dbf9312955f94941bc0e28c8e11c301f09cedeca50" type="video/mp4" />
+          <video autoplay muted loop playsinline preload="auto" id="heroVideo">
+              <source src="/static/assets/1.mp4" type="video/mp4">
           </video>
         </div>
         <div class="video-copy">

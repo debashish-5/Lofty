@@ -136,6 +136,87 @@
       filter: saturate(1.02) contrast(1.03) brightness(0.94);
     }
 
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      padding: 18px 0;
+      backdrop-filter: blur(18px);
+      background: rgba(0, 0, 0, 0.72);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .nav-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      width: min(1450px, calc(100% - 36px));
+      margin: 0 auto;
+      padding: 0 18px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-mark {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, #31d16a, #8ef0ad);
+      color: #050505;
+      font-weight: 900;
+      flex: 0 0 auto;
+    }
+
+    .brand-text h1 {
+      margin: 0;
+      font-size: 0.98rem;
+      letter-spacing: 0.14em;
+    }
+
+    .brand-text p {
+      margin: 3px 0 0;
+      color: rgba(255, 255, 255, 0.58);
+      font-size: 0.82rem;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .nav-links a {
+      color: rgba(255, 255, 255, 0.78);
+      font-size: 0.92rem;
+      font-weight: 600;
+      padding: 8px 11px;
+      border-radius: 999px;
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+
+    .nav-links a:hover {
+      background: rgba(255, 255, 255, 0.06);
+      color: #fff;
+    }
+
+    .nav-cta {
+      padding: 11px 18px;
+      border-radius: 999px;
+      background: #31d16a;
+      color: #050505;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
     .vignette {
       position: absolute;
       inset: 0;
@@ -170,7 +251,27 @@
   </style>
 </head>
 <body>
-  <main class="page">
+  <header class="nav">
+    <div class="nav-row">
+      <a class="brand" href="index.html">
+        <div class="brand-mark">L</div>
+        <div class="brand-text">
+          <h1>LOFTY</h1>
+          <p>About</p>
+        </div>
+      </a>
+
+      <nav class="nav-links" aria-label="Main navigation">
+        <a href="index.html">Home</a>
+        <a href="feature.html">Features</a>
+        <a href="#top">Overview</a>
+      </nav>
+
+      <a class="nav-cta" href="index.html">Back home</a>
+    </div>
+  </header>
+
+  <main class="page" id="top">
     <section class="text-side">
       <div class="copy">
         <h1><span class="accent">LOFTY</span> is alive.</h1>
@@ -186,7 +287,7 @@
     <section class="video-side" aria-label="Project video showcase">
       <div class="video-frame">
         <video autoplay muted loop playsinline>
-          <source src="Final Shot Comp-Desktop.mp4" type="video/mp4" />
+          <source src="/static/assets/Final Shot Comp-Desktop.mp4" type="video/mp4" />
         </video>
       </div>
       <div class="vignette"></div>

@@ -113,10 +113,17 @@
       border-radius: 14px;
       display: grid;
       place-items: center;
-      background: linear-gradient(135deg, var(--green), var(--green-soft));
-      color: #050505;
-      font-weight: 900;
+      overflow: hidden;
       flex: 0 0 auto;
+      background: #111;
+    }
+
+    .brand-mark img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
+      object-position: center;
     }
 
     .brand-text h1 {
@@ -564,7 +571,9 @@
 
   <header class="nav">
     <a class="brand" href="#home">
-      <div class="brand-mark">L</div>
+      <div class="brand-mark">
+        <img src="static/assets/frame_0001.webp" alt="Lofty logo" />
+      </div>
       <div class="brand-text">
         <h1>LOFTY</h1>
         <p>Human-like AI assistant</p>
@@ -573,8 +582,8 @@
 
     <div class="nav-links">
       <a href="#home">Home</a>
-      <a href="#about">About</a>
-      <a href="#contact">Contact</a>
+      <a href="about.html">About</a>
+      <a href="/feature">Features</a>
     </div>
 
     <a class="nav-cta" href="#home">Launch</a>
@@ -583,14 +592,13 @@
   <main id="home" class="shell hero">
     <div class="hero-inner">
       <section class="left">
-        <div class="eyebrow">Solid black premium landing page</div>
+        <div class="eyebrow">Are you ready ?</div>
         <h2>LOFTY is <span class="accent">alive</span>.</h2>
         <div class="typing-line" aria-label="Typing status">
           <span class="typing-word" id="typingWord"></span><span class="typing-cursor"></span>
         </div>
         <p>
-          A clean cinematic homepage inspired by premium modern landing pages — bold typography on the left,
-          your motion video on the right, and no cards or clutter.
+         LOFTY is a premium AI assistant designed to feel human, responsive, and alive. Built with a clean black interface, real-time voice interaction, memory, and powerful tool execution, it combines elegant design with intelligent desktop automation in one seamless experience.
         </p>
 
         <div class="actions">
@@ -626,7 +634,9 @@
       <div class="lower-grid">
         <aside class="lower-left">
           <div class="lower-brand">
-            <div class="brand-mark">L</div>
+            <div class="brand-mark">
+              <img src="static/assets/frame_0001.webp" alt="Lofty logo" />
+            </div>
             <div class="brand-text">
               <h1>LOFTY</h1>
               <p>Human-like AI assistant</p>
