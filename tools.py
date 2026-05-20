@@ -505,4 +505,9 @@ class AssistantCore:
         tool_map = {tool_obj.name:tool_obj for tool_obj in self.tool_list}
         outputs:list =[]
         for call in pending:
-            
+            name = call.get("name")
+            tool_call_id = call.get("id","")
+            args = call.get("args") or {}
+            tool_obj = tool_map.get(name)
+            if tool_obj is None:
+                outputs.append(ToolMessage(content=f"Unknown tool:{name}",tool_call_id=tool_call_id))

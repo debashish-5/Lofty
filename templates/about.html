@@ -31,6 +31,94 @@
       grid-template-columns: 1fr 1fr;
     }
 
+    .nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 30;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 22px 26px;
+      background: linear-gradient(180deg, rgba(0,0,0,0.88), rgba(0,0,0,0.56));
+      backdrop-filter: blur(12px);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .brand-mark {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      flex: 0 0 auto;
+      background: #111;
+    }
+
+    .brand-mark img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
+      object-position: center;
+    }
+
+    .brand-text h1 {
+      margin: 0;
+      font-size: 0.98rem;
+      letter-spacing: 0.12em;
+    }
+
+    .brand-text p {
+      margin: 3px 0 0;
+      color: rgba(255,255,255,0.60);
+      font-size: 0.8rem;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    /* This removes the underline from every link inside your header */
+    .nav-row a {
+        text-decoration: none !important;
+    }
+
+    .nav-links a {
+      color: rgba(255,255,255,0.78);
+      font-weight: 600;
+      font-size: 0.92rem;
+      padding: 8px 10px;
+      border-radius: 999px;
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+
+    .nav-links a:hover {
+      background: rgba(255,255,255,0.08);
+      color: #fff;
+    }
+
+    .nav-cta {
+      padding: 11px 18px;
+      border-radius: 999px;
+      background: var(--green);
+      color: #050505;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
     .text-side {
       display: flex;
       align-items: center;
@@ -178,6 +266,7 @@
       margin: 0;
       font-size: 0.98rem;
       letter-spacing: 0.14em;
+      color: white;
     }
 
     .brand-text p {
@@ -226,6 +315,8 @@
       pointer-events: none;
     }
 
+    
+
     @media (max-width: 980px) {
       body { overflow: auto; }
       .page {
@@ -252,12 +343,14 @@
 </head>
 <body>
   <header class="nav">
-    <div class="nav-row">
+      <div class="nav-row">
       <a class="brand" href="/">
-        <div class="brand-mark">L</div>
+        <div class="brand-mark">
+          <img src="static/assets/frame_0001.webp" alt="Lofty logo" />
+        </div>
         <div class="brand-text">
           <h1>LOFTY</h1>
-          <p>About</p>
+          <p>Human-like AI assistant</p>
         </div>
       </a>
 
@@ -267,7 +360,7 @@
         <a href="#top">Overview</a>
       </nav>
 
-      <a class="nav-cta" href="/">Back home</a>
+      <a class="nav-cta" href="/Lofty">Lofty</a>
     </div>
   </header>
 
