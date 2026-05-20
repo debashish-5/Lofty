@@ -1,5 +1,4 @@
 from __future__ import annotations
-
 import json
 import os
 import queue
@@ -458,5 +457,52 @@ def safe_workspace_path(path_str: str, create_parent: bool = False) -> Path:
 
 
 class AssistantCore:
-    def __init__(self,memory_store:MemoryStore)
-
+    def __init__(self,memory_store:MemoryStore):
+        if ChatOllama is None or StateGraph is None:
+            raise RuntimeError("LangChain/LangGraph tool support is not available.")
+        self.memory_store = memory_store
+        self.tools = AssistantTools(self.memory_store)
+        self.tool_list = self.tools.get_tool()
+        self.llm = ChatOllama(
+            model=MODEL_NAME,
+            base_url=OLLAMA_BASE_URL,
+            temperature=0.2
+        )
+        self.checkpointer = MemorySaver()
+        self.graph = self._build_graph()
+        self.config  = {"configurable":{"thread_id":"advanced-thread"}}
+    def _build_graph(self):
+        builder = StateGraph(AssistantState)
+        builder.add_node("llm",self._llm_node)  
+        builder.add_node("tools",self._tool_node)
+        builder.add_edge(START,"llm")
+        builder.add_conditional_edges(
+            "llm",
+            self._route_after_llm,
+            {"tools":"tools",END:END}
+        )  
+        builder.add_edge("tools","llm")
+        return builder.compile(checkpointer=self.checkpointer)
+    def _system_messages(self) -> list:
+        profile = self.memory_store.all()
+        profile_text = json.dumps(profile,indent=2,ensure_ascii=False)
+        return [SystemMessage(content=f"{SYSTEM_PROMPT}\n\nUser memory:\n{profile_text}")]
+    def _llm_node(self,state:AssistantState) -> Dict[str,Any]:
+        messages = self._system_messages()+list(state.get("messages",[]))
+        model = self.llm.bind_tools(self.tool_list)
+        response = model.invoke(messages)
+        pending = getattr(response,"tool_calls",None) or []
+        return {
+            "messages":[response],
+            "pending_tool_calls":pending,
+            "ui_state":"thinking" if pending else "speaking",
+        }
+    def _route_after_llm(self,state:AssistantState)  -> str:
+        pending = state.get("pending_tool_calls") or []
+        return "tools" if pending else END
+    def _tool_node(self,state:AssistantState) -> str:
+        pending = state.get("pending_tool_calls") or []
+        tool_map = {tool_obj.name:tool_obj for tool_obj in self.tool_list}
+        outputs:list =[]
+        for call in pending:
+            
