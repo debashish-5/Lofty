@@ -7,20 +7,21 @@
 [![Ollama](https://img.shields.io/badge/Ollama-Local%20LLM-000000?style=for-the-badge)](https://ollama.com/)
 [![LangGraph](https://img.shields.io/badge/LangGraph-Agent%20Workflow-111827?style=for-the-badge)](https://langchain-ai.github.io/langgraph/)
 [![LangChain](https://img.shields.io/badge/LangChain-Model%20Orchestration-1C3C3C?style=for-the-badge)](https://python.langchain.com/)
+[![Windows](https://img.shields.io/badge/Windows-Desktop%20Ready-0078D4?style=for-the-badge\&logo=windows\&logoColor=white)](https://www.microsoft.com/windows)
 
 **Lofty** is a local-first AI assistant built to feel fast, private, and highly usable. It combines a FastAPI backend, a cinematic terminal-style web UI, a tool-aware agent flow, optional voice input, and local memory to create a complete assistant system that runs on your machine.
 
 ---
 
-## Project Overview
+## Project Summary
 
-Lofty is designed as a practical desktop-style assistant with a strong developer focus. It can chat, call tools, manage files, open applications, and support optional speech-to-text and text-to-speech. The interface is intentionally minimal and terminal-inspired, while the backend remains modular and easy to extend.
+Lofty is a practical desktop-style assistant with a strong developer focus. It can chat, call tools, manage files, open applications, and support optional speech-to-text and text-to-speech. The interface is intentionally minimal and terminal-inspired, while the backend remains modular and easy to extend.
 
-This project is aimed at real productivity use, not just demo interaction. The assistant can be connected to local models through Ollama, and the tool graph can safely execute approved host actions such as app launching, file operations, and browser actions.
+This project is designed for real productivity use, not just demo interaction. The assistant can be connected to local models through Ollama, and the tool graph can safely execute approved host actions such as app launching, file operations, and browser actions.
 
 ---
 
-## Core Ideas
+## Core Concepts
 
 * Local-first assistant with no dependency on cloud LLMs by default
 * FastAPI backend for routing, UI delivery, and assistant endpoints
@@ -28,12 +29,15 @@ This project is aimed at real productivity use, not just demo interaction. The a
 * LangGraph orchestration for tool-aware assistant behavior
 * LangChain integration for model and tool bindings
 * JSON-backed memory for persistence across sessions
-* Optional voice transcription and TTS
+* Optional voice interaction using faster-whisper
+* Optional spoken replies using pyttsx3
 * Safe host tools with workspace restrictions and confirmation flow
+* Modular backend wrappers for cleaner expansion
+* Responsive frontend with cards, voice controls, and theme support
 
 ---
 
-## Key Features
+## Feature Highlights
 
 * Conversational assistant interface with terminal-style UI
 * Tool-aware model flow for actionable requests
@@ -41,10 +45,46 @@ This project is aimed at real productivity use, not just demo interaction. The a
 * Read and write files in a controlled workspace
 * Web link launching and command execution support
 * Memory storage for preferences and session context
-* Optional voice interaction using `faster-whisper`
-* Optional spoken replies using `pyttsx3`
+* Optional voice interaction using faster-whisper
+* Optional spoken replies using pyttsx3
 * Modular backend wrappers for cleaner expansion
 * Responsive frontend with cards, voice controls, and theme support
+* Privacy-friendly local model execution
+* Safe tool execution with confirmation before risky actions
+
+---
+
+## Sticker Skills
+
+Use these as visual skill stickers in your README, banner, or project gallery:
+
+[![Local-first](https://img.shields.io/badge/Skill-Local--First-111111?style=for-the-badge)]()
+[![Voice Ready](https://img.shields.io/badge/Skill-Voice%20Ready-1A1A1A?style=for-the-badge)]()
+[![Tool Aware](https://img.shields.io/badge/Skill-Tool%20Aware-1A1A1A?style=for-the-badge)]()
+[![Memory System](https://img.shields.io/badge/Skill-Memory%20System-1A1A1A?style=for-the-badge)]()
+[![Automation](https://img.shields.io/badge/Skill-Automation-1A1A1A?style=for-the-badge)]()
+[![Desktop Control](https://img.shields.io/badge/Skill-Desktop%20Control-1A1A1A?style=for-the-badge)]()
+[![Workspace Safety](https://img.shields.io/badge/Skill-Workspace%20Safety-1A1A1A?style=for-the-badge)]()
+[![UIUX Design](https://img.shields.io/badge/Skill-UIUX%20Design-1A1A1A?style=for-the-badge)]()
+[![FastAPI](https://img.shields.io/badge/Skill-FastAPI-1A1A1A?style=for-the-badge)]()
+[![LangGraph](https://img.shields.io/badge/Skill-LangGraph-1A1A1A?style=for-the-badge)]()
+[![LangChain](https://img.shields.io/badge/Skill-LangChain-1A1A1A?style=for-the-badge)]()
+[![Ollama](https://img.shields.io/badge/Skill-Ollama-1A1A1A?style=for-the-badge)]()
+
+---
+
+## Achievement Badges
+
+Use these badges to show the project level and technical progress:
+
+[![Offline AI](https://img.shields.io/badge/Achievement-Offline%20AI%20Assistant-0B0B0B?style=for-the-badge)]()
+[![Local LLM](https://img.shields.io/badge/Achievement-Local%20LLM%20Integration-0B0B0B?style=for-the-badge)]()
+[![Voice Pipeline](https://img.shields.io/badge/Achievement-Voice%20Pipeline-0B0B0B?style=for-the-badge)]()
+[![Tool Graph](https://img.shields.io/badge/Achievement-Tool%20Graph-0B0B0B?style=for-the-badge)]()
+[![Memory Store](https://img.shields.io/badge/Achievement-Memory%20Store-0B0B0B?style=for-the-badge)]()
+[![Desktop Agent](https://img.shields.io/badge/Achievement-Desktop%20Agent-0B0B0B?style=for-the-badge)]()
+[![Safe Actions](https://img.shields.io/badge/Achievement-Safe%20Actions-0B0B0B?style=for-the-badge)]()
+[![Responsive UI](https://img.shields.io/badge/Achievement-Responsive%20UI-0B0B0B?style=for-the-badge)]()
 
 ---
 
@@ -178,7 +218,7 @@ Responsible for:
 
 ---
 
-## Core Concepts
+## Core Concepts Explained
 
 ### Local Model Execution
 
@@ -200,65 +240,89 @@ Sensitive actions are gated by confirmation and workspace rules to reduce accide
 
 Voice input and spoken replies are optional modules that can be enabled when the needed packages are installed.
 
+### Productivity Core
+
+The assistant is designed to reduce manual switching between apps, files, and browser tasks by turning natural language into direct actions.
+
+### Human-Like Interaction
+
+The UI and voice loop are built to feel present, responsive, and continuous instead of static or generic.
+
 ---
 
-## UI Assets and Visual Collateral
+## Product Goals
+
+* Make the assistant feel local, private, and fast
+* Provide a real utility layer for desktop productivity
+* Support natural language commands for workflows
+* Keep the codebase modular and easy to maintain
+* Present the project like a polished product, not a toy demo
+
+---
+
+## Visual Assets
 
 Add your project visuals here:
 
 * `assets/banner.jpg` — main project banner
 * `assets/intro.mp4` — intro video for the terminal UI
-* `assets/stickers/` — modern digital stickers
-* `assets/badges/` — branded badges and labels
-* `assets/screenshots/` — product screenshots
+* `assets/hero-shot.png` — main product screenshot
+* `assets/assistant-state.png` — idle assistant screen
+* `assets/speaking-state.gif` — speaking animation
+* `assets/screens/` — UI screenshots
+* `assets/badges/` — modern achievement badges
+* `assets/stickers/` — digital stickers and skill tags
+* `assets/videos/` — project videos and clips
 * `assets/covers/` — video/image cover art
 
-### Suggested stickers
+### Suggested video placements
 
-* local-first
-* voice-ready
-* tool-aware
-* memory-enabled
-* privacy-focused
-* workspace-safe
-* automation
-* offline-capable
+* one short hero video near the overview
+* one assistant state loop near the features
+* one workflow demo clip near the architecture section
+* one voice demo clip near the voice section
 
-### Suggested badges
+### Suggested image placements
 
-* FastAPI powered
-* Ollama local model
-* LangGraph workflow
-* Voice enabled
-* Memory support
-* Tool execution
-* Windows ready
-* Privacy first
+* banner image at the top
+* one clean screenshot of the UI
+* one architecture visual
+* one feature collage
+* one sticker sheet or badge sheet
 
 ---
 
-## Video and Image Placement
+## Media Gallery
 
-If you want a modern README with strong visual impact, add:
+Use this section to show your project visually:
 
-* one hero banner at the top
-* one short product video near the overview
-* one screenshot showing the terminal UI
-* one architecture image or diagram
-* one collage of badges/stickers at the end
+### Project Video
 
-Recommended layout order:
+Place your main product video here:
 
-1. Banner
-2. Badges
-3. Short overview
-4. Feature blocks
-5. Architecture diagram
-6. Workflow diagram
-7. Screenshots / video
-8. Setup
-9. Testing
-10. Roadmap
+```html
+<video controls autoplay muted loop playsinline>
+  <source src="assets/videos/lofty-demo.mp4" type="video/mp4">
+</video>
+```
+
+### Project Image
+
+Place your main project image here:
+
+```html
+<img src="assets/hero-shot.png" alt="Lofty assistant preview">
+```
+
+### Assistant States
+
+Show the assistant in different modes:
+
+* idle portrait
+* listening portrait
+* speaking video
+* tool execution screen
+* confirmation screen
 
 ---
 
@@ -320,6 +384,12 @@ python -c "import lofty_backend_enhanced, tools; print('imports ok')"
 python -c "import sounddevice, faster_whisper, numpy, scipy; print('voice ok')"
 ```
 
+### UI asset check
+
+```bash
+python -c "from pathlib import Path; print(Path('assets/banner.jpg').exists())"
+```
+
 ---
 
 ## Safety Notes
@@ -349,6 +419,11 @@ project/
 ├── assets/
 │   ├── banner.jpg
 │   ├── intro.mp4
+│   ├── hero-shot.png
+│   ├── assistant-state.png
+│   ├── speaking-state.gif
+│   ├── videos/
+│   ├── screens/
 │   ├── stickers/
 │   └── badges/
 ├── lofty_memory.json
@@ -376,6 +451,10 @@ Some applications on Windows may require exact executable paths rather than alia
 
 Ensure the file exists inside the workspace and that the assistant is allowed to access it.
 
+### Media not showing
+
+Confirm the asset paths are correct and the files exist in the expected folders.
+
 ---
 
 ## Roadmap
@@ -387,13 +466,17 @@ Ensure the file exists inside the workspace and that the assistant is allowed to
 * Add richer UI states and themes
 * Add tests and CI checks
 * Package for desktop distribution
-* Improve screenshot, banner, and sticker assets
+* Improve screenshot, banner, sticker, and badge assets
+* Add more workflow demos and product media
+* Add a polished landing page for the project
 
 ---
 
 ## Why This Project Matters
 
-Lofty is built as a serious local assistant system that combines model orchestration, tools, voice, memory, and a premium interface. It is designed to demonstrate product thinking, backend engineering, automation logic, and polished UI/UX in one project.
+Lofty is built as a serious local assistant system that combines model orchestration, tools, voice, memory, and a polished interface. It is designed to demonstrate product thinking, backend engineering, automation logic, and strong UI and UX direction in one project.
+
+It also shows practical implementation of local-first AI, safe tool execution, and system-level productivity workflows.
 
 ---
 
@@ -415,4 +498,11 @@ Built with:
 * LangGraph
 * FastAPI
 * faster-whisper
-* pyt
+* pyttsx3
+* Python
+
+---
+
+## Final Note
+
+Lofty is a local AI assistant built for practical productivity, system automation, and a polished user experience.
