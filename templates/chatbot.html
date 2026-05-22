@@ -6,20 +6,20 @@
   <title>Lofty Terminal // Cyber Deck AI</title>
   <style>
     :root {
-      --bg: #000000;
-      --panel: rgba(7, 9, 12, 0.94);
-      --panel-2: rgba(3, 5, 8, 0.98);
-      --line: rgba(255,255,255,0.08);
-      --line-soft: rgba(255,255,255,0.04);
-      --text: #e8f1ec;
-      --muted: #7b8b93;
-      --dim: #52616a;
+      --bg: #030405; /* darker, near-black */
+      --panel: rgba(10, 12, 15, 0.96);
+      --panel-2: rgba(6, 8, 11, 0.99);
+      --line: rgba(255,255,255,0.06);
+      --line-soft: rgba(255,255,255,0.03);
+      --text: #f5fbf7; /* higher-contrast text */
+      --muted: #a7bac0;
+      --dim: #6b8086;
       --accent: #72ffbf;
       --accent2: #6ad7ff;
       --accent3: #a78bfa;
       --warn: #ffd166;
       --error: #ff6b6b;
-      --radius: 16px;
+      --radius: 14px;
     }
 
     * { box-sizing: border-box; }
@@ -146,9 +146,11 @@
       border-radius: var(--radius);
       background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.005));
       background-color: var(--panel);
-      overflow: hidden;
+      overflow: auto; /* allow scrolling inside cards */
+      -webkit-overflow-scrolling: touch;
       box-shadow: none;
     }
+
     .glass-card::before {
       content: "";
       position: absolute;
@@ -208,14 +210,20 @@
       padding: 16px;
       white-space: pre-wrap;
       line-height: 1.7;
-      font-size: 14px;
+      font-size: 15px; /* slightly larger for readability */
+      color: var(--text);
       scrollbar-width: thin;
-      scrollbar-color: #17242d #07090b;
+      scrollbar-color: rgba(255,255,255,0.14) rgba(0,0,0,0.18);
       font-variant-ligatures: none;
     }
     .terminal-body::-webkit-scrollbar { width: 10px; }
-    .terminal-body::-webkit-scrollbar-thumb { background: #17242d; border: 2px solid #07090b; border-radius: 10px; }
-    .terminal-body::-webkit-scrollbar-track { background: #07090b; }
+    .terminal-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border: 2px solid rgba(0,0,0,0.18); border-radius: 10px; }
+    .terminal-body::-webkit-scrollbar-track { background: transparent; }
+
+    /* Make scrollbars for glass cards consistent */
+    .glass-card::-webkit-scrollbar { height: 10px; width: 10px; }
+    .glass-card::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 8px; }
+    .glass-card::-webkit-scrollbar-track { background: transparent; }
 
     .input-bar {
       display: flex; align-items: center; gap: 10px;
@@ -361,6 +369,28 @@
     @media (max-width: 1240px) {
       .deck-grid { grid-template-columns: 1fr; grid-template-rows: auto; overflow-y: auto; }
       .header-panel { grid-column: auto; }
+    }
+    @media (max-width: 900px) {
+      html, body { font-size: 14px; }
+      .deck-grid {
+        grid-template-columns: 1fr !important;
+        grid-template-rows: 64px auto auto !important;
+        gap: 8px;
+        padding: 10px;
+      }
+      .header-panel { padding: 8px 12px; }
+      .brand { font-size: 13px; }
+      .stat-cluster { gap: 10px; }
+      .glass-card { border-radius: 12px; }
+      .terminal-space { height: calc(100vh - 220px); }
+      .terminal-body { font-size: 15px; padding: 12px; }
+      .cmd-input { font-size: 14px; }
+      .chip-row { overflow-x: auto; gap: 6px; padding: 8px; }
+      .mini-list { padding: 8px; }
+      .assistant-grid { grid-template-columns: 1fr; }
+      .panel-hdr { padding: 8px 12px; }
+      .card-host { padding: 8px; }
+      .toolbar { gap: 6px; padding: 8px; }
     }
   </style>
 </head>
@@ -994,6 +1024,12 @@
     connectBtn.addEventListener('click', async () => {
       logLine(`<span class="accent2">Testing local backend...</span>`);
       await submitCommand('lofty:connect');
+    });
+
+    modePill.addEventListener('click', () => {
+      setMode('shell');
+      modePill.classList.add('active');
+      logLine(`<span class="accent">Shell power activated.</span> <span class="dim">(performing shell operation via langchain shellTool())</span>`);
     });
 
     themeBtn.addEventListener('click', () => {

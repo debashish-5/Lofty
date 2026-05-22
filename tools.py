@@ -24,7 +24,7 @@ from sklearn.linear_model import LinearRegression
 from sklearn.metrics import accuracy_score, mean_squared_error
 from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, SystemMessage, ToolMessage
 from langchain_core.tools import tool
-from langgraph.checkpoint.memory import MemorySaver,Me
+from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
 from langgraph.graph.message import add_messages
 from langchain_ollama import ChatOllama
@@ -385,43 +385,45 @@ class AssistantTools:
                     
                     #based on users type
                     #classification
-                    if model_type =="classification":
+                    if model_type == "classification":
                         model = RandomForestClassifier()
-                        model.fit(x_train,y_train)
+                        model.fit(x_train, y_train)
                         preds = model.predict(x_test)
-                        score = accuracy_score(y_test,preds)
-                        metric = f"Accuracy : {score:4f}"
-                    #regression
+                        score = accuracy_score(y_test, preds)
+                        metric = f"Accuracy: {score:.4f}"
                     else:
                         model = LinearRegression()
-                        model.fit(x_train,y_train)  
+                        model.fit(x_train, y_train)
                         preds = model.predict(x_test)
-                        score = accuracy_score(y_test,preds)
-                        metrics = f"Accuracy : {score:4f}"
-                    model_path = MODELS_DIR/f"{model_name}.pkl"
-                    joblib.dump(model,model_path)
+                        score = mean_squared_error(y_test, preds)
+                        metric = f"MSE: {score:.4f}"
+                    model_path = MODELS_DIR / f"{model_name}.pkl"
+                    joblib.dump(model, model_path)
                     return (
-                        f"Model trained successully.\n"
-                        f"Saved to: {model_path}"
+                        f"Model trained successfully.\n"
+                        f"Saved to: {model_path}\n"
                         f"{metric}"
-                    ) 
+                    )
                 elif "predict" in action.lower().strip():
                     if not model_name:
-                        return "Model_name not found"
+                        return "Model name not found"
                     if not prediction_input_json:
                         return "prediction_input_json not found"
-                    model_path = MODELS_DIR/f"{model_name}.pkl"
+                    model_path = MODELS_DIR / f"{model_name}.pkl"
                     if not model_path.exists():
-                        return f'Model not found:{model_path}'
+                        return f'Model not found: {model_path}'
                     model = joblib.load(model_path)
-                    input_data = joblib.loads(prediction_input_json)
+                    try:
+                        input_data = json.loads(prediction_input_json)
+                    except Exception as exc:
+                        return f"Invalid JSON input: {exc}"
                     df = pd.DataFrame([input_data])
                     prediction = model.predict(df)
-                    return f"Prediction:{prediction.tolist()}"
+                    return f"Prediction: {prediction.tolist()}"
                 else:
-                    return "Invalid Action,use 'train' or 'predict"
+                    return "Invalid action, use 'train' or 'predict'"
             except Exception as e:
-                return f"ML tool failed:{e}"
+                return f"ML tool failed: {e}"
         
         return [
             open_app,
@@ -500,10 +502,10 @@ class AssistantCore:
     def _route_after_llm(self,state:AssistantState)  -> str:
         pending = state.get("pending_tool_calls") or []
         return "tools" if pending else END
-    def _tool_node(self,state:AssistantState) -> str:
+    def _tool_node(self,state:AssistantState) -> Dict[str,Any]:
         pending = state.get("pending_tool_calls") or []
         tool_map = {tool_obj.name:tool_obj for tool_obj in self.tool_list}
-        outputs:list =[]
+        outputs:list = []
         for call in pending:
             name = call.get("name")
             tool_call_id = call.get("id","")
@@ -511,3 +513,38 @@ class AssistantCore:
             tool_obj = tool_map.get(name)
             if tool_obj is None:
                 outputs.append(ToolMessage(content=f"Unknown tool:{name}",tool_call_id=tool_call_id))
+                continue
+            try:
+                result = tool_obj.invoke(**args)
+                if not isinstance(result,str):
+                    result = json.dumps(result,ensure_ascii=False)
+                outputs.append(ToolMessage(content=result,tool_call_id=tool_call_id))
+            except Exception as e:
+                outputs.append(ToolMessage(content=f"Tool {name} failed: {e}",tool_call_id=tool_call_id))
+
+        return {
+            "messages":outputs,
+            "pending_tool_calls":[],
+            "approved":True,
+            "ui_state":"thinking"
+        }
+
+    def run(self, session_id: str, user_text: str) -> str:
+        initial = {"messages": [HumanMessage(content=user_text)], "ui_state": "listening"}
+        result = self.graph.invoke(initial, config=self.config)
+
+        messages = result.get("messages", [])
+        assistant_text = ""
+        for msg in reversed(messages):
+            if isinstance(msg, AIMessage) and getattr(msg, "content", None):
+                assistant_text = str(msg.content)
+                break
+
+        if assistant_text:
+            self.memory_store.add_message(session_id, "user", user_text)
+            self.memory_store.add_message(session_id, "assistant", assistant_text)
+
+        return assistant_text
+        
+        
+    
