@@ -6,3 +6,4 @@ lofty_backend.py
 .env
 .env.local
 *.env
+key.env
