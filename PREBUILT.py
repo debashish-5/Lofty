@@ -19,4 +19,6 @@ class prebuilt:
     @tool
     def sql_database_tool(self,databasefile:str) -> str:
         """Given a path to a SQL database file,this tool is used to give response based on this database file """
-        DB_URI = 
+        DB_URI = f"mysql+pymysql://user:password@localhost:3306/{databasefile}"
+        db = self.SQLDatabase.from_uri(DB_URI)
+        
