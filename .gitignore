@@ -3,3 +3,6 @@ py.py
 lovify_assistant_split_package.zip
 lofty_backend_enhanced.py
 lofty_backend.py
+.env
+.env.local
+*.env
