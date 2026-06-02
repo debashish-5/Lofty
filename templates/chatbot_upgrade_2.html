@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Lofty OS™ | The Agentic Substrate</title>
+    <style>
+        /* ==========================================================================
+           CORE VARIABLES & THEME
+           ========================================================================== */
+        :root {
+            --bg-base: #010203;
+            --panel-bg: rgba(6, 10, 15, 0.65);
+            --panel-border: rgba(114, 255, 191, 0.15);
+            --panel-glow: rgba(114, 255, 191, 0.05);
+            
+            --text-main: #e2f1ec;
+            --text-muted: #6b8a82;
+            --text-dim: #3a524a;
+            
+            --accent-primary: #72ffbf;   /* Cyber Green */
+            --accent-secondary: #6ad7ff; /* Matrix Blue */
+            --accent-tertiary: #a78bfa;  /* Neural Purple */
+            --accent-warn: #ffcc00;
+            --accent-crit: #ff3366;
+            
+            --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', Consolas, monospace;
+            --font-sans: 'Inter', 'Segoe UI', sans-serif;
+            
+            --radius-sm: 4px;
+            --radius-md: 8px;
+            --radius-lg: 16px;
+            
+            --scanline-color: rgba(255, 255, 255, 0.03);
+        }
+
+        [data-theme="crimson"] {
+            --accent-primary: #ff0055;
+            --accent-secondary: #ff4343;
+            --panel-border: rgba(255, 0, 85, 0.15);
+        }
+
+        [data-theme="void"] {
+            --accent-primary: #ffffff;
+            --accent-secondary: #aaaaaa;
+            --panel-border: rgba(255, 255, 255, 0.15);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body, html {
+            width: 100%; height: 100%;
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            font-family: var(--font-mono);
+            overflow: hidden;
+            font-size: 14px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ==========================================================================
+           CRT & ENVIRONMENTAL EFFECTS
+           ========================================================================== */
+        .crt-overlay {
+            position: fixed; inset: 0; z-index: 9999; pointer-events: none;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), 
+                        linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+            background-size: 100% 3px, 3px 100%;
+            box-shadow: inset 0 0 100px rgba(0,0,0,0.9);
+        }
+        
+        .scanline {
+            width: 100%; height: 100px; z-index: 9998; position: absolute; pointer-events: none;
+            background: linear-gradient(0deg, rgba(0,0,0,0) 0%, var(--scanline-color) 10%, rgba(0,0,0,0) 100%);
+            opacity: 0.1; animation: scanline 8s linear infinite;
+        }
+        
+        @keyframes scanline {
+            0% { transform: translateY(-100vh); }
+            100% { transform: translateY(100vh); }
+        }
+
+        .glitch-text {
+            position: relative;
+            display: inline-block;
+        }
+        .glitch-text::before, .glitch-text::after {
+            content: attr(data-text); position: absolute; top: 0; left: 0; opacity: 0.8;
+        }
+        .glitch-text::before {
+            left: 2px; color: var(--accent-secondary); animation: glitch-anim-1 2s infinite linear alternate-reverse;
+        }
+        .glitch-text::after {
+            left: -2px; color: var(--accent-crit); animation: glitch-anim-2 3s infinite linear alternate-reverse;
+        }
+        
+        @keyframes glitch-anim-1 {
+            0% { clip-path: inset(20% 0 80% 0); }
+            20% { clip-path: inset(60% 0 10% 0); }
+            40% { clip-path: inset(40% 0 50% 0); }
+            60% { clip-path: inset(80% 0 5% 0); }
+            80% { clip-path: inset(10% 0 70% 0); }
+            100% { clip-path: inset(30% 0 20% 0); }
+        }
+        @keyframes glitch-anim-2 {
+            0% { clip-path: inset(10% 0 60% 0); }
+            20% { clip-path: inset(30% 0 20% 0); }
+            40% { clip-path: inset(70% 0 10% 0); }
+            60% { clip-path: inset(20% 0 50% 0); }
+            80% { clip-path: inset(50% 0 30% 0); }
+            100% { clip-path: inset(5% 0 80% 0); }
+        }
+
+        /* ==========================================================================
+           BOOT SEQUENCE (ASCII HACKER ENTRY)
+           ========================================================================== */
+        #boot-sequence {
+            position: absolute; inset: 0; background: #000; z-index: 10000;
+            display: flex; flex-direction: column; padding: 2rem;
+            overflow: hidden;
+        }
+        .boot-ascii {
+            color: var(--accent-primary); white-space: pre; font-size: 10px; line-height: 1.2;
+            margin-bottom: 2rem; text-shadow: 0 0 5px var(--accent-primary);
+        }
+        .boot-log {
+            display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--text-muted);
+        }
+        .boot-line {
+            opacity: 0; transform: translateX(-10px); animation: fadeIn 0.1s forwards;
+        }
+        .boot-line.ok { color: var(--accent-primary); }
+        .boot-line.warn { color: var(--accent-warn); }
+        .boot-line.err { color: var(--accent-crit); }
+        .boot-spinner::after { content: '|'; animation: spin 0.4s infinite linear; display: inline-block; margin-left: 10px; }
+        
+        @keyframes fadeIn { to { opacity: 1; transform: translateX(0); } }
+        @keyframes spin { 0% { content: '|'; } 25% { content: '/'; } 50% { content: '-'; } 75% { content: '\\'; } 100% { content: '|'; } }
+
+        /* ==========================================================================
+           MAIN OS LAYOUT (CSS GRID)
+           ========================================================================== */
+        #os-core {
+            display: grid;
+            grid-template-columns: 320px 1fr 380px;
+            grid-template-rows: 60px 1fr 40px;
+            gap: 16px; padding: 16px; width: 100%; height: 100%;
+            opacity: 0; transition: opacity 1s ease-in-out;
+            background: radial-gradient(circle at 50% 50%, rgba(114, 255, 191, 0.03) 0%, transparent 60%);
+        }
+        #os-core.active { opacity: 1; }
+
+        .glass-panel {
+            background: var(--panel-bg);
+            backdrop-filter: blur(12px) saturate(180%);
+            -webkit-backdrop-filter: blur(12px) saturate(180%);
+            border: 1px solid var(--panel-border);
+            border-radius: var(--radius-md);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5), inset 0 0 20px var(--panel-glow);
+            display: flex; flex-direction: column; overflow: hidden;
+            position: relative;
+        }
+        .glass-panel::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 2px;
+            background: linear-gradient(90deg, transparent, var(--accent-primary), transparent);
+            opacity: 0.5;
+        }
+
+        /* HEADER */
+        header { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; padding: 0 24px; }
+        .brand-cluster { display: flex; align-items: center; gap: 16px; }
+        .os-logo { font-weight: 900; font-size: 20px; letter-spacing: 2px; }
+        .os-logo span { color: var(--accent-primary); }
+        .badge {
+            background: rgba(114, 255, 191, 0.1); border: 1px solid var(--accent-primary);
+            color: var(--accent-primary); padding: 4px 8px; border-radius: var(--radius-sm);
+            font-size: 10px; text-transform: uppercase; letter-spacing: 1px; font-weight: bold;
+        }
+
+        .global-stats { display: flex; gap: 24px; }
+        .stat-group { display: flex; flex-direction: column; align-items: flex-end; }
+        .stat-label { font-size: 9px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+        .stat-value { font-size: 14px; font-weight: bold; color: var(--text-main); font-variant-numeric: tabular-nums; }
+
+        /* LEFT SIDEBAR (Telemetry & Vectors) */
+        aside.left-sidebar { grid-column: 1; grid-row: 2; display: flex; flex-direction: column; gap: 16px; }
+        .panel-header {
+            padding: 12px 16px; background: rgba(0,0,0,0.3); border-bottom: 1px solid var(--panel-border);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .panel-title { font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: var(--accent-secondary); font-weight: bold; }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent-primary); box-shadow: 0 0 8px var(--accent-primary); }
+
+        .telemetry-container { padding: 16px; flex: 1; display: flex; flex-direction: column; gap: 16px; }
+        .canvas-wrapper {
+            width: 100%; height: 120px; border: 1px solid var(--panel-border); border-radius: var(--radius-sm);
+            background: rgba(0,0,0,0.5); position: relative;
+        }
+        #sys-canvas { width: 100%; height: 100%; display: block; }
+        
+        .vector-matrix { display: flex; flex-direction: column; gap: 8px; }
+        .matrix-row {
+            display: flex; justify-content: space-between; font-size: 11px; padding: 6px 8px;
+            background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 4px;
+        }
+        .matrix-row .dim { color: var(--accent-tertiary); }
+        .matrix-row .metric { color: var(--accent-secondary); }
+
+        /* MAIN TERMINAL */
+        main.terminal-space { grid-column: 2; grid-row: 2; display: flex; flex-direction: column; }
+        .term-tabs { display: flex; border-bottom: 1px solid var(--panel-border); background: rgba(0,0,0,0.2); }
+        .term-tab {
+            padding: 12px 24px; font-size: 12px; color: var(--text-muted); cursor: pointer;
+            border-right: 1px solid var(--panel-border); border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        .term-tab.active { color: var(--accent-primary); border-bottom: 2px solid var(--accent-primary); background: rgba(114, 255, 191, 0.05); }
+
+        .terminal-output {
+            flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px;
+            font-size: 14px; line-height: 1.6; scrollbar-width: thin; scrollbar-color: var(--accent-primary) transparent;
+        }
+        .terminal-output::-webkit-scrollbar { width: 6px; }
+        .terminal-output::-webkit-scrollbar-thumb { background: var(--panel-border); border-radius: 3px; }
+
+        .cmd-line { display: flex; gap: 12px; word-break: break-all; }
+        .cmd-prompt { color: var(--accent-primary); font-weight: bold; flex-shrink: 0; }
+        .cmd-text { color: var(--text-main); }
+        .out-text { color: var(--text-muted); padding-left: 24px; white-space: pre-wrap; }
+        
+        .ai-response {
+            margin: 12px 0 12px 24px; padding: 16px; border-left: 2px solid var(--accent-tertiary);
+            background: linear-gradient(90deg, rgba(167, 139, 250, 0.05), transparent);
+            color: #fff;
+        }
+
+        .input-area {
+            display: flex; align-items: center; padding: 16px 20px; border-top: 1px solid var(--panel-border);
+            background: rgba(0,0,0,0.4);
+        }
+        .input-prompt { color: var(--accent-primary); font-weight: bold; margin-right: 12px; }
+        #cli-input {
+            flex: 1; background: transparent; border: none; color: var(--text-main);
+            font-family: var(--font-mono); font-size: 15px; outline: none;
+        }
+        #cli-input::placeholder { color: var(--text-dim); }
+
+        /* RIGHT SIDEBAR (Agentic Substrate & Reasoning) */
+        aside.right-sidebar { grid-column: 3; grid-row: 2; display: flex; flex-direction: column; gap: 16px; }
+        
+        .agent-pool { padding: 12px; display: flex; flex-direction: column; gap: 10px; overflow-y: auto; flex: 1; }
+        .agent-card {
+            border: 1px solid rgba(114, 255, 191, 0.2); border-radius: var(--radius-md);
+            background: linear-gradient(135deg, rgba(255,255,255,0.02), rgba(0,0,0,0.2));
+            padding: 12px; position: relative;
+        }
+        .agent-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--accent-primary); }
+        .agent-card.marketing::before { background: var(--accent-tertiary); }
+        .agent-card.payment::before { background: var(--accent-secondary); }
+        
+        .ac-head { display: flex; justify-content: space-between; margin-bottom: 8px; }
+        .ac-title { font-size: 11px; font-weight: bold; color: var(--text-main); }
+        .ac-status { font-size: 9px; padding: 2px 6px; border-radius: 10px; background: rgba(114, 255, 191, 0.1); color: var(--accent-primary); }
+        .ac-body { font-size: 11px; color: var(--text-muted); line-height: 1.4; }
+
+        .reasoning-visualizer {
+            height: 200px; padding: 12px; border-top: 1px solid var(--panel-border);
+            display: flex; flex-direction: column;
+        }
+        .reasoning-nodes { flex: 1; display: flex; flex-direction: column; gap: 4px; overflow: hidden; margin-top: 8px; }
+        .r-node {
+            font-size: 10px; color: var(--text-dim); border-left: 1px solid var(--panel-border); padding-left: 8px;
+            animation: slideDown 0.3s ease-out forwards;
+        }
+        .r-node.active { color: var(--accent-tertiary); border-left-color: var(--accent-tertiary); }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* FOOTER */
+        footer {
+            grid-column: 1 / -1; grid-row: 3; display: flex; justify-content: space-between; align-items: center;
+            padding: 0 16px; border-top: 1px solid var(--panel-border); background: var(--panel-bg);
+            font-size: 11px; color: var(--text-muted);
+        }
+        .footer-tools { display: flex; gap: 16px; }
+        .tool-btn {
+            background: transparent; border: 1px solid var(--text-dim); color: var(--text-muted);
+            padding: 4px 12px; border-radius: var(--radius-sm); cursor: pointer; font-family: inherit; font-size: 10px;
+            transition: all 0.2s;
+        }
+        .tool-btn:hover { border-color: var(--accent-primary); color: var(--accent-primary); background: rgba(114, 255, 191, 0.1); }
+
+        /* UTILITIES */
+        .color-p { color: var(--accent-primary); }
+        .color-s { color: var(--accent-secondary); }
+        .color-t { color: var(--accent-tertiary); }
+        .color-w { color: var(--accent-warn); }
+        .color-e { color: var(--accent-crit); }
+        
+        @media (max-width: 1200px) {
+            #os-core { grid-template-columns: 280px 1fr; grid-template-rows: 60px 1fr 1fr 40px; }
+            aside.right-sidebar { grid-column: 1 / -1; grid-row: 3; flex-direction: row; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="crt-overlay"></div>
+    <div class="scanline"></div>
+
+    <div id="boot-sequence">
+        <div class="boot-ascii" id="ascii-art"></div>
+        <div class="boot-log" id="boot-log"></div>
+    </div>
+
+    <div id="os-core">
+        <header class="glass-panel">
+            <div class="brand-cluster">
+                <div class="os-logo">LOFTY <span class="glitch-text" data-text="OS™">OS™</span></div>
+                <div class="badge">Agentic Substrate v2.0.26</div>
+            </div>
+            <div class="global-stats">
+                <div class="stat-group"><span class="stat-label">Model</span><span class="stat-value">EVE-GENESIS (M-7B)</span></div>
+                <div class="stat-group"><span class="stat-label">Session Hash</span><span class="stat-value" id="session-hash">0x0000</span></div>
+                <div class="stat-group"><span class="stat-label">Uptime</span><span class="stat-value" id="sys-uptime">00:00:00</span></div>
+            </div>
+        </header>
+
+        <aside class="left-sidebar glass-panel">
+            <div class="panel-header">
+                <span class="panel-title">Infrastructure Nodes</span>
+                <div class="status-dot"></div>
+            </div>
+            <div class="telemetry-container">
+                <div class="canvas-wrapper">
+                    <canvas id="sys-canvas"></canvas>
+                </div>
+                
+                <div class="panel-header" style="background:transparent; padding:0; border:none; margin-top:10px;">
+                    <span class="panel-title" style="font-size:10px;">High-Dimensional Registry</span>
+                </div>
+                <div class="vector-matrix">
+                    <div class="matrix-row"><span>knowledge_substrate_core</span><span class="dim">1536d</span><span class="metric">Cos_Sim</span></div>
+                    <div class="matrix-row"><span>conversational_graph</span><span class="dim">1536d</span><span class="metric">Graph_Adj</span></div>
+                    <div class="matrix-row"><span>programmatic_ast</span><span class="dim">768d</span><span class="metric">Euclid_L2</span></div>
+                </div>
+                <div class="vector-matrix" style="margin-top:auto;">
+                    <div class="matrix-row" style="border-color:var(--accent-primary);"><span>Dialectical Paths</span><span class="color-p">4,912 ACTIVE</span></div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="terminal-space glass-panel">
+            <div class="term-tabs">
+                <div class="term-tab active">MAIN // BASH</div>
+                <div class="term-tab">MINDHYVE // REASONING</div>
+                <div class="term-tab">LOCAL // OLLAMA</div>
+            </div>
+            
+            <div class="terminal-output" id="term-out">
+                </div>
+
+            <div class="input-area">
+                <span class="input-prompt">lofty@substrate:~$</span>
+                <input type="text" id="cli-input" placeholder="Initialize command directive... (type 'help')" autocomplete="off" spellcheck="false">
+            </div>
+        </main>
+
+        <aside class="right-sidebar glass-panel">
+            <div class="panel-header">
+                <span class="panel-title">Agentic Routing Pool</span>
+                <div class="badge" style="border:none; background:rgba(106, 215, 255, 0.1); color:var(--accent-secondary);">61% LOAD</div>
+            </div>
+            
+            <div class="agent-pool" id="agent-pool">
+                <div class="agent-card marketing">
+                    <div class="ac-head">
+                        <span class="ac-title">Epiminds // Omni-Channel</span>
+                        <span class="ac-status">IDLE</span>
+                    </div>
+                    <div class="ac-body">Awaiting market segmentation triggers. Semantic brand analysis standing by.</div>
+                </div>
+                
+                <div class="agent-card">
+                    <div class="ac-head">
+                        <span class="ac-title">DV8 // Orchestrator</span>
+                        <span class="ac-status">MONITORING</span>
+                    </div>
+                    <div class="ac-body">Industry transformation loops active. Sandboxed over private loopback.</div>
+                </div>
+
+                <div class="agent-card payment">
+                    <div class="ac-head">
+                        <span class="ac-title">AI-Native Payments // RZ</span>
+                        <span class="ac-status">SECURE</span>
+                    </div>
+                    <div class="ac-body">Sprint 2026 ledger protocols engaged. Anomaly detection via Euclidean_L2.</div>
+                </div>
+            </div>
+
+            <div class="reasoning-visualizer">
+                <div class="panel-header" style="background:transparent; padding:0; border:none;">
+                    <span class="panel-title" style="font-size:10px; color:var(--accent-tertiary);">Cognitive Synthesis (92%)</span>
+                </div>
+                <div class="reasoning-nodes" id="reasoning-nodes">
+                    <div class="r-node">Waiting for contextual input...</div>
+                </div>
+            </div>
+        </aside>
+
+        <footer>
+            <div>[0x000000] COMPILING CORE QUANTUM INGEST MATRIX EMBEDDINGS... 100%</div>
+            <div class="footer-tools">
+                <button class="tool-btn" id="btn-voice">[ V ] VOICE INTERFACE</button>
+                <button class="tool-btn" id="btn-theme">[ T ] CYCLE THEME</button>
+                <button class="tool-btn" id="btn-clear">[ C ] CLEAR BUFFER</button>
+            </div>
+        </footer>
+    </div>
+
+<script>
+/**
+ * LOFTY OS™ - THE AGENTIC SUBSTRATE
+ * Advanced Terminal Emulation, Virtual File System, and Cognitive Simulation.
+ */
+
+// ==========================================================================
+// 1. BOOT SEQUENCE (ASCII HACKER ENTRY)
+// ==========================================================================
+const ASCII_LOGO = `
+ ██╗      ██████╗ ███████╗████████╗██╗   ██╗     ██████╗ ███████╗
+ ██║     ██╔═══██╗██╔════╝╚══██╔══╝╚██╗ ██╔╝    ██╔═══██╗██╔════╝
+ ██║     ██║   ██║█████╗     ██║    ╚████╔╝     ██║   ██║███████╗
+ ██║     ██║   ██║██╔══╝     ██║     ╚██╔╝      ██║   ██║╚════██║
+ ███████╗╚██████╔╝██║        ██║      ██║       ╚██████╔╝███████║
+ ╚══════╝ ╚═════╝ ╚═╝        ╚═╝      ╚═╝        ╚═════╝ ╚══════╝
+ 
+ >> LOFTSPACE CYBER DECK INITIATING...
+ >> KERNEL VER 9.4.2-EVE
+`;
+
+const BOOT_LOGS = [
+    { text: "Mounting Matrix Deck...", status: "ok", delay: 300 },
+    { text: "Initializing Autonomous Agentic Routing Pool...", status: "ok", delay: 200 },
+    { text: "Allocating 128 Autonomous Agents...", status: "ok", delay: 150 },
+    { text: "Loading Eve-Genesis Reasoning Modes...", status: "ok", delay: 400 },
+    { text: "WARN: Unregistered bio-signature detected on port 22.", status: "warn", delay: 300 },
+    { text: "Bypassing security protocols [Substrate-X]...", status: "ok", delay: 200 },
+    { text: "Compiling High-Dimensional Knowledge Collections:", status: "info", delay: 100 },
+    { text: " -> knowledge_substrate_core [1536d] loaded.", status: "ok", delay: 150 },
+    { text: " -> conversational_history_graph [1536d] loaded.", status: "ok", delay: 150 },
+    { text: "Establishing Dialectical Paths (4,912 active)...", status: "ok", delay: 300 },
+    { text: "BOOT SEQUENCE COMPLETE. HANDING OVER TO SHELL.", status: "ok", delay: 500 }
+];
+
+class BootManager {
+    constructor() {
+        this.container = document.getElementById('boot-sequence');
+        this.asciiEl = document.getElementById('ascii-art');
+        this.logEl = document.getElementById('boot-log');
+        this.osCore = document.getElementById('os-core');
+    }
+
+    async run() {
+        // Type ASCII Logo
+        this.asciiEl.textContent = '';
+        for (let i = 0; i < ASCII_LOGO.length; i++) {
+            this.asciiEl.textContent += ASCII_LOGO[i];
+            if (i % 5 === 0) await new Promise(r => setTimeout(r, 1)); 
+        }
+
+        await new Promise(r => setTimeout(r, 500));
+
+        // Process Logs
+        for (const log of BOOT_LOGS) {
+            await new Promise(r => setTimeout(r, log.delay));
+            const line = document.createElement('div');
+            line.className = `boot-line ${log.status}`;
+            line.innerHTML = `[${new Date().toISOString().split('T')[1].slice(0,8)}] ${log.text}`;
+            this.logEl.appendChild(line);
+            this.container.scrollTop = this.container.scrollHeight;
+        }
+
+        // Add spinner pause
+        const spinner = document.createElement('div');
+        spinner.className = 'boot-line boot-spinner color-s';
+        spinner.textContent = "Decrypting Neural Pathways ";
+        this.logEl.appendChild(spinner);
+        
+        await new Promise(r => setTimeout(r, 1500));
+        
+        // Transition to OS
+        this.container.style.transition = "opacity 0.5s, filter 0.5s";
+        this.container.style.opacity = "0";
+        this.container.style.filter = "blur(10px)";
+        
+        setTimeout(() => {
+            this.container.style.display = 'none';
+            this.osCore.classList.add('active');
+            document.getElementById('cli-input').focus();
+            terminal.systemPrint("Lofty OS Active. Type 'help' to see available directives.", "color-p");
+        }, 600);
+    }
+}
+
+// ==========================================================================
+// 2. VIRTUAL FILE SYSTEM (VFS)
+// ==========================================================================
+const fileSystem = {
+    "~": {
+        type: "dir",
+        content: {
+            "mindhyve": {
+                type: "dir",
+                content: {
+                    "reasoning_modes.txt": { type: "file", data: "Eve-Genesis trains REASONING MODES, not answers. Shift from static data retrieval to deductive, inductive, and abductive generation." },
+                    "cognitive_synthesis.bin": { type: "file", data: "01001101 01101001 01101110 01100100 01001000 01011001 01010110 01000101" }
+                }
+            },
+            "agents": {
+                type: "dir",
+                content: {
+                    "epiminds_marketing.sh": { type: "file", data: "#!/bin/bash\necho 'Executing Omni-channel market segmentation agent...'" },
+                    "dv8_orchestrator.cfg": { type: "file", data: "orchestration_mode=hybrid\nindustry_transform=true" }
+                }
+            },
+            "system": {
+                type: "dir",
+                content: {
+                    "config.json": { type: "file", data: '{"version": "2.0.26", "telemetry": "active", "theme": "cyber"}' }
+                }
+            },
+            "readme.txt": { type: "file", data: "Welcome to Lofty OS. Explore the directories to understand the Agentic Substrate." }
+        }
+    }
+};
+
+class VFS {
+    constructor() {
+        this.cwd = ["~"]; // Current Working Directory path array
+    }
+
+    getDir(pathArray) {
+        let current = fileSystem["~"];
+        for (let i = 1; i < pathArray.length; i++) {
+            if (current.content && current.content[pathArray[i]]) {
+                current = current.content[pathArray[i]];
+            } else {
+                return null;
+            }
+        }
+        return current;
+    }
+
+    pwd() {
+        return this.cwd.join("/").replace("~/", "~") || "~";
+    }
+
+    ls() {
+        const dir = this.getDir(this.cwd);
+        if (dir.type !== "dir") return "Not a directory.";
+        return Object.keys(dir.content).map(k => {
+            const isDir = dir.content[k].type === "dir";
+            return isDir ? `<span class="color-s">${k}/</span>` : `<span class="color-w">${k}</span>`;
+        }).join("  ");
+    }
+
+    cd(target) {
+        if (!target || target === "~") { this.cwd = ["~"]; return ""; }
+        if (target === "..") {
+            if (this.cwd.length > 1) this.cwd.pop();
+            return "";
+        }
+        const dir = this.getDir(this.cwd);
+        if (dir.content[target] && dir.content[target].type === "dir") {
+            this.cwd.push(target);
+            return "";
+        }
+        return `cd: ${target}: No such file or directory`;
+    }
+
+    cat(filename) {
+        const dir = this.getDir(this.cwd);
+        if (dir.content[filename]) {
+            if (dir.content[filename].type === "dir") return `cat: ${filename}: Is a directory`;
+            return dir.content[filename].data;
+        }
+        return `cat: ${filename}: No such file or directory`;
+    }
+}
+const vfs = new VFS();
+
+// ==========================================================================
+// 3. TELEMETRY ENGINE (Advanced Canvas Rendering)
+// ==========================================================================
+class TelemetryEngine {
+    constructor() {
+        this.canvas = document.getElementById('sys-canvas');
+        this.ctx = this.canvas.getContext('2d');
+        this.data = {
+            cpu: Array(50).fill(20),
+            ram: Array(50).fill(40),
+            net: Array(50).fill(10)
+        };
+        this.resize();
+        window.addEventListener('resize', () => this.resize());
+        this.animate();
+    }
+
+    resize() {
+        const rect = this.canvas.parentElement.getBoundingClientRect();
+        this.canvas.width = rect.width;
+        this.canvas.height = rect.height;
+    }
+
+    updateData() {
+        // CPU: High volatility
+        let lastCpu = this.data.cpu[this.data.cpu.length - 1];
+        this.data.cpu.push(Math.max(10, Math.min(95, lastCpu + (Math.random() - 0.5) * 30)));
+        this.data.cpu.shift();
+
+        // RAM: Slow changes
+        let lastRam = this.data.ram[this.data.ram.length - 1];
+        this.data.ram.push(Math.max(30, Math.min(85, lastRam + (Math.random() - 0.5) * 5)));
+        this.data.ram.shift();
+
+        // NET: Spiky
+        this.data.net.push(Math.random() > 0.8 ? Math.random() * 80 + 20 : Math.random() * 20);
+        this.data.net.shift();
+    }
+
+    drawSeries(data, color, fillOpacity) {
+        const w = this.canvas.width;
+        const h = this.canvas.height;
+        const step = w / (data.length - 1);
+        
+        this.ctx.beginPath();
+        this.ctx.moveTo(0, h);
+        
+        for(let i=0; i<data.length; i++) {
+            const x = i * step;
+            const y = h - (data[i] / 100) * h;
+            this.ctx.lineTo(x, y);
+        }
+        
+        this.ctx.lineTo(w, h);
+        this.ctx.closePath();
+        
+        this.ctx.fillStyle = color.replace(')', `, ${fillOpacity})`).replace('rgb', 'rgba');
+        this.ctx.fill();
+        
+        this.ctx.beginPath();
+        for(let i=0; i<data.length; i++) {
+            const x = i * step;
+            const y = h - (data[i] / 100) * h;
+            if(i===0) this.ctx.moveTo(x,y); else this.ctx.lineTo(x,y);
+        }
+        this.ctx.strokeStyle = color;
+        this.ctx.lineWidth = 1.5;
+        this.ctx.stroke();
+    }
+
+    animate() {
+        this.updateData();
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        
+        // Grid
+        this.ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+        this.ctx.lineWidth = 1;
+        for(let i=0; i<this.canvas.width; i+=40) { this.ctx.beginPath(); this.ctx.moveTo(i,0); this.ctx.lineTo(i,this.canvas.height); this.ctx.stroke(); }
+        for(let i=0; i<this.canvas.height; i+=20) { this.ctx.beginPath(); this.ctx.moveTo(0,i); this.ctx.lineTo(this.canvas.width,i); this.ctx.stroke(); }
+
+        const computed = getComputedStyle(document.body);
+        const colorCpu = computed.getPropertyValue('--accent-primary').trim();
+        const colorRam = computed.getPropertyValue('--accent-secondary').trim();
+        const colorNet = computed.getPropertyValue('--accent-tertiary').trim();
+
+        // Convert hex to rgb string for fill opacity logic
+        const hexToRgb = hex => {
+            let c;
+            if(/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)){
+                c= hex.substring(1).split('');
+                if(c.length== 3){ c= [c[0], c[0], c[1], c[1], c[2], c[2]]; }
+                c= '0x'+c.join('');
+                return 'rgb('+[(c>>16)&255, (c>>8)&255, c&255].join(',')+')';
+            }
+            return hex; // fallback
+        }
+
+        this.drawSeries(this.data.ram, hexToRgb(colorRam), 0.1);
+        this.drawSeries(this.data.net, hexToRgb(colorNet), 0.05);
+        this.drawSeries(this.data.cpu, hexToRgb(colorCpu), 0.2);
+        
+        setTimeout(() => requestAnimationFrame(() => this.animate()), 100); // 10fps for retro feel
+    }
+}
+
+// ==========================================================================
+// 4. COGNITIVE SYNTHESIS / REASONING ENGINE (Agentic Simulation)
+// ==========================================================================
+class AgenticEngine {
+    constructor() {
+        this.panel = document.getElementById('reasoning-nodes');
+        this.states = [
+            "Parsing semantic intent...",
+            "Querying vector matrix: knowledge_substrate_core",
+            "Calculating Euclidean distance...",
+            "Graph Adjacency mapped.",
+            "Applying Eve-Genesis Abductive reasoning...",
+            "Synthesizing cognitive output."
+        ];
+    }
+
+    async simulateReasoning(topic) {
+        this.panel.innerHTML = `<div class="r-node active">Directive received: ${topic}</div>`;
+        
+        for(let state of this.states) {
+            await new Promise(r => setTimeout(r, 400 + Math.random() * 600));
+            const el = document.createElement('div');
+            el.className = 'r-node';
+            el.textContent = state;
+            this.panel.appendChild(el);
+            this.panel.scrollTop = this.panel.scrollHeight;
+            
+            // Randomly update agent pool status
+            if(Math.random() > 0.5) this.flashAgent();
+        }
+        
+        const el = document.createElement('div');
+        el.className = 'r-node color-p';
+        el.textContent = "SYNTHESIS COMPLETE.";
+        this.panel.appendChild(el);
+    }
+
+    flashAgent() {
+        const cards = document.querySelectorAll('.agent-card .ac-status');
+        const target = cards[Math.floor(Math.random() * cards.length)];
+        const oldText = target.textContent;
+        target.textContent = "COMPUTING";
+        target.style.background = "var(--accent-crit)";
+        target.style.color = "#fff";
+        
+        setTimeout(() => {
+            target.textContent = oldText;
+            target.style.background = "";
+            target.style.color = "";
+        }, 800);
+    }
+}
+const aiEngine = new AgenticEngine();
+
+// ==========================================================================
+// 5. TERMINAL CORE & PARSER
+// ==========================================================================
+class Terminal {
+    constructor() {
+        this.output = document.getElementById('term-out');
+        this.input = document.getElementById('cli-input');
+        this.promptLabel = document.querySelector('.input-prompt');
+        this.history = [];
+        this.historyIndex = -1;
+        this.isProcessing = false;
+        
+        this.input.addEventListener('keydown', (e) => this.handleInput(e));
+        this.updatePrompt();
+    }
+
+    updatePrompt() {
+        this.promptLabel.textContent = `lofty@substrate:${vfs.pwd()}$`;
+    }
+
+    print(html, type="out-text") {
+        const div = document.createElement('div');
+        div.className = type;
+        div.innerHTML = html;
+        this.output.appendChild(div);
+        this.output.scrollTop = this.output.scrollHeight;
+    }
+
+    printCmd(cmd) {
+        const div = document.createElement('div');
+        div.className = 'cmd-line';
+        div.innerHTML = `<span class="cmd-prompt">${this.promptLabel.textContent}</span><span class="cmd-text">${this.escapeHTML(cmd)}</span>`;
+        this.output.appendChild(div);
+    }
+
+    systemPrint(text, colorClass = "color-s") {
+        this.print(`<span class="${colorClass}">${text}</span>`);
+    }
+
+    async aiPrint(text) {
+        const div = document.createElement('div');
+        div.className = 'ai-response';
+        this.output.appendChild(div);
+        
+        // Typewriter effect
+        for(let i=0; i<text.length; i++) {
+            div.innerHTML += text[i].replace('\n', '<br>');
+            this.output.scrollTop = this.output.scrollHeight;
+            await new Promise(r => setTimeout(r, 10)); // typing speed
+        }
+    }
+
+    escapeHTML(str) {
+        return str.replace(/[&<>'"]/g, tag => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+        }[tag]));
+    }
+
+    async handleInput(e) {
+        if(this.isProcessing) {
+            e.preventDefault();
+            return;
+        }
+
+        if (e.key === 'Enter') {
+            const cmd = this.input.value.trim();
+            this.input.value = '';
+            if (cmd) {
+                this.history.push(cmd);
+                this.historyIndex = this.history.length;
+                this.printCmd(cmd);
+                await this.processCommand(cmd);
+            }
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            if (this.historyIndex > 0) {
+                this.historyIndex--;
+                this.input.value = this.history[this.historyIndex];
+            }
+        } else if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            if (this.historyIndex < this.history.length - 1) {
+                this.historyIndex++;
+                this.input.value = this.history[this.historyIndex];
+            } else {
+                this.historyIndex = this.history.length;
+                this.input.value = '';
+            }
+        }
+    }
+
+    async processCommand(rawCmd) {
+        this.isProcessing = true;
+        const args = rawCmd.split(/\s+/);
+        const cmd = args.shift().toLowerCase();
+
+        switch (cmd) {
+            case 'help':
+                this.print(`
+Available Directives:
+  <span class="color-p">ls</span>           - List directory contents
+  <span class="color-p">cd [dir]</span>     - Change directory
+  <span class="color-p">pwd</span>          - Print working directory
+  <span class="color-p">cat [file]</span>   - Read file contents
+  <span class="color-p">sysinfo</span>      - Display hardware substrate telemetry
+  <span class="color-p">agents</span>       - Query Agentic Routing Pool status
+  <span class="color-p">reason [msg]</span> - Trigger MindHYVE Cognitive Synthesis
+  <span class="color-p">theme [name]</span> - Change UI theme (cyber, crimson, void)
+  <span class="color-p">clear</span>        - Clear terminal buffer
+  <span class="color-p">reboot</span>       - Restart Lofty OS sequence
+                `);
+                break;
+            case 'ls':
+                this.print(vfs.ls());
+                break;
+            case 'cd':
+                const cdErr = vfs.cd(args[0]);
+                if (cdErr) this.print(`<span class="color-e">${cdErr}</span>`);
+                this.updatePrompt();
+                break;
+            case 'pwd':
+                this.print(vfs.pwd());
+                break;
+            case 'cat':
+                if(!args[0]) { this.print("cat: missing operand"); break; }
+                this.print(vfs.cat(args[0]));
+                break;
+            case 'sysinfo':
+                this.print(`
+[ SUBSTRATE HARDWARE TELEMETRY ]
+CPU: Quantum Core Architecture [Active Load: ~42%]
+MEM: 1024TB Holographic RAM [Allocated: 64%]
+NET: Hyper-Mesh Loopback (Ping: 0.1ms)
+GPU: Neural Tensor Array (Mistral-7B Inference Sandboxed)
+                `);
+                break;
+            case 'agents':
+                this.print(`
+[ AGENTIC POOL: 128 NODES ]
+- Epiminds Marketing Agent: <span class="color-s">IDLE</span> (Awaiting trigger)
+- DV8 Orchestrator: <span class="color-p">MONITORING</span> (Private loopback segment)
+- Razorpay Ledger AI: <span class="color-w">SECURE</span> (Sprint 26 protocol)
+Type 'reason [topic]' to wake cognitive agents.
+                `);
+                break;
+            case 'reason':
+                const topic = args.join(" ") || "General Inquiry";
+                this.systemPrint(">> Spawning MindHYVE reasoning thread...", "color-t");
+                await aiEngine.simulateReasoning(topic);
+                await this.aiPrint(`Based on the high-dimensional vector analysis (Cos_Sim across 1536d) regarding "${topic}":\n\nThe Eve-Genesis abductive reasoning model suggests that direct data retrieval is insufficient. By leveraging the Epiminds marketing parameters and the programmatic AST context, we establish a novel dialectical path. The orchestrator has routed this via local loopback port for security.\n\nConclusion derived autonomously.`);
+                break;
+            case 'theme':
+                const t = args[0];
+                if(['cyber', 'crimson', 'void'].includes(t)) {
+                    document.body.setAttribute('data-theme', t);
+                    this.systemPrint(`Theme recompiled to: ${t.toUpperCase()}`, "color-p");
+                } else {
+                    this.print(`Unknown theme. Available: cyber, crimson, void`);
+                }
+                break;
+            case 'clear':
+                this.output.innerHTML = '';
+                break;
+            case 'reboot':
+                location.reload();
+                break;
+            default:
+                this.print(`<span class="color-e">lofty: command not found: ${cmd}</span>`);
+        }
+        this.isProcessing = false;
+    }
+}
+
+// ==========================================================================
+// 6. INITIALIZATION & UI LOGIC
+// ==========================================================================
+const terminal = new Terminal();
+const telemetryEngine = new TelemetryEngine();
+
+// System Clock
+setInterval(() => {
+    document.getElementById('sys-uptime').textContent = new Date().toISOString().split('T')[1].slice(0, 8);
+}, 1000);
+
+// Session Hash
+document.getElementById('session-hash').textContent = '0x' + Math.floor(Math.random()*16777215).toString(16).toUpperCase();
+
+// Footer Tools
+document.getElementById('btn-clear').addEventListener('click', () => { terminal.output.innerHTML = ''; });
+document.getElementById('btn-theme').addEventListener('click', () => {
+    const current = document.body.getAttribute('data-theme');
+    const next = current === 'crimson' ? 'void' : current === 'void' ? 'cyber' : 'crimson';
+    document.body.setAttribute('data-theme', next);
+    terminal.systemPrint(`Theme cycled via tool button: ${next.toUpperCase()}`, "color-p");
+});
+document.getElementById('btn-voice').addEventListener('click', () => {
+    terminal.systemPrint("Voice API hook triggered. (Microphone access required in full deployment).", "color-w");
+});
+
+// Start Boot
+window.onload = () => {
+    const boot = new BootManager();
+    boot.run();
+};
+
+</script>
+</body>
+</html>

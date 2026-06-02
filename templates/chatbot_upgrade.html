@@ -1,0 +1,1353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lofty Terminal // Sovereign Cyber Deck OS</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700;800&family=Space+Grotesk:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+
+  <style>
+    /* =========================================================================
+       CORE ARCHITECTURAL MATRIX VARIABLES
+       ========================================================================= */
+    :root {
+      --bg: #020203;
+      --panel: rgba(8, 10, 12, 0.94);
+      --panel-elevated: rgba(16, 20, 24, 0.98);
+      --panel-light: #181d22;
+      --line: rgba(255, 255, 255, 0.05);
+      --line-active: rgba(212, 255, 0, 0.25);
+      --text: #f4f8f6;
+      --muted: #9bb0b5;
+      --dim: #5c6f74;
+      
+      /* Color Profiles (Dynamic Accent Engines) */
+      --accent: #D4FF00; /* Default Cyber Yellow */
+      --accent-rgb: 212, 255, 0;
+      --accent2: #00ffbc; /* Alternate Toxic Mint */
+      --accent3: #00bfff; /* Alternate Deep Frost */
+      
+      --warn: #ffb703;
+      --error: #ff4d6d;
+      --radius-xl: 16px;
+      --radius-lg: 12px;
+      --radius-sm: 6px;
+      --transition-fast: cubic-bezier(0.16, 1, 0.3, 1);
+      --transition-main: cubic-bezier(0.25, 1, 0.5, 1);
+      
+      --scroll: 0;
+    }
+
+    /* Reset and Base Enforcements */
+    * { margin: 0; padding: 0; box-sizing: border-box; cursor: none !important; }
+    html, body {
+      width: 100%; height: 100%; overflow: hidden; background: #000;
+      color: var(--text); font-family: 'Space Grotesk', sans-serif;
+      -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+      text-rendering: optimizeLegibility;
+    }
+
+    body {
+      background-color: var(--bg);
+      background-image: 
+        radial-gradient(circle at 50% 0%, rgba(212, 255, 0, 0.04), transparent 40%),
+        radial-gradient(circle at 0% 100%, rgba(0, 255, 188, 0.03), transparent 30%);
+    }
+
+    /* Custom Scrollbars */
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.3); }
+    ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.08); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+    /* =========================================================================
+       HARDWARE SPECTRAL FX LAYERS
+       ========================================================================= */
+    .fx-surface { position: fixed; inset: 0; pointer-events: none; z-index: 9999; }
+    .scanlines::before {
+      content: ""; position: absolute; inset: 0;
+      background: repeating-linear-gradient(
+        to bottom, rgba(255, 255, 255, 0.015) 0px, rgba(255, 255, 255, 0.005) 1px, transparent 2px, transparent 4px
+      );
+      opacity: 0.8; animation: scanline-drift 12s linear infinite;
+    }
+    @keyframes scanline-drift { from { transform: translateY(0); } to { transform: translateY(20px); } }
+    .noise-floor {
+      opacity: 0.035; mix-blend-mode: overlay;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.98' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100' height='100' filter='url(%23n)'/></svg>");
+    }
+    .vignette-shroud { box-shadow: inset 0 0 200px rgba(0, 0, 0, 0.95); }
+
+    /* =========================================================================
+       MATHEMATICAL INTERPOLATION RING CURSOR
+       ========================================================================= */
+    #core-dot {
+      position: fixed; top: 0; left: 0; width: 4px; height: 4px;
+      background: var(--text); border-radius: 50%;
+      transform: translate(-50%, -50%); z-index: 100001; pointer-events: none;
+      box-shadow: 0 0 10px #fff;
+    }
+    #aura-ring {
+      position: fixed; top: 0; left: 0; width: 32px; height: 32px;
+      border: 1px solid var(--accent); border-radius: 50%;
+      transform: translate(-50%, -50%); z-index: 100000; pointer-events: none;
+      transition: width 0.3s var(--transition-fast), height 0.3s var(--transition-fast), background 0.3s ease, border-color 0.3s;
+    }
+    body.hovering-node #aura-ring {
+      width: 64px; height: 64px; background: rgba(var(--accent-rgb), 0.06); border-color: var(--accent2); backdrop-filter: blur(1px);
+    }
+
+    /* =========================================================================
+       BACKGROUND ATTACTOR FLOWFIELD
+       ========================================================================= */
+    #vector-canvas {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      z-index: 1; opacity: 0.45; pointer-events: none;
+    }
+
+    /* =========================================================================
+       SYSTEM INTRO / BOOT TRACK
+       ========================================================================= */
+    #introScreen {
+      position: fixed; inset: 0; z-index: 99999; background: #000;
+      display: flex; flex-direction: column; justify-content: space-between;
+      transition: opacity 0.6s var(--transition-main), transform 0.6s var(--transition-main);
+    }
+    #introScreen.hidden { opacity: 0; pointer-events: none; transform: scale(1.02); }
+    #introVideo { width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0; z-index: -1; opacity: 0.45; }
+    
+    .intro-hud {
+      position: relative; z-index: 10; padding: 40px; display: flex;
+      flex-direction: column; justify-content: space-between; height: 100%;
+    }
+    .intro-header-tag {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; letter-spacing: 0.3em;
+      color: var(--accent); display: flex; align-items: center; gap: 12px;
+    }
+    .intro-header-tag::before { content: ''; width: 8px; height: 8px; background: var(--accent); border-radius: 50%; }
+    .intro-footer-wrap { display: flex; justify-content: space-between; align-items: flex-end; }
+    .intro-meta h2 { font-size: 3.5rem; font-weight: 900; text-transform: uppercase; letter-spacing: -2px; line-height: 0.95; margin-bottom: 12px; }
+    .intro-meta p { font-size: 1rem; color: var(--muted); max-width: 600px; line-height: 1.6; }
+    .intro-skip-prompt {
+      font-family: 'JetBrains Mono'; font-size: 0.8rem; text-transform: uppercase;
+      padding: 12px 24px; border: 1px solid var(--line); background: rgba(0,0,0,0.6);
+      border-radius: var(--radius-sm); color: var(--muted); letter-spacing: 1px;
+    }
+
+    /* =========================================================================
+       MAIN APPLICATION LAYOUT DECK
+       ========================================================================= */
+    #appScreen { position: fixed; inset: 0; z-index: 5; display: none; padding: 16px; }
+    #appScreen.active { display: block; }
+
+    .matrix-deck {
+      width: 100%; height: 100%; display: grid;
+      grid-template-columns: 340px minmax(0, 1fr) 360px;
+      grid-template-rows: 76px 1fr; gap: 16px;
+    }
+
+    /* Premium Technical Cards */
+    .deck-panel {
+      position: relative; border: 1px solid var(--line); border-radius: var(--radius-xl);
+      background-color: var(--panel); overflow: hidden; display: flex;
+      flex-direction: column; transform-style: preserve-3d; perspective: 1000px;
+    }
+    .deck-panel-scroll { flex: 1; overflow-y: auto; padding: 20px; }
+
+    /* Header Component Grid */
+    .deck-header {
+      grid-column: 1 / -1; display: flex; align-items: center;
+      justify-content: space-between; padding: 0 24px;
+    }
+    .deck-brand { font-family: 'JetBrains Mono'; font-weight: 800; font-size: 1.1rem; letter-spacing: 0.2em; color: var(--text); }
+    .deck-brand span { color: var(--accent); }
+    .deck-vitals-cluster { display: flex; gap: 40px; align-items: center; }
+    .vital-node { display: flex; flex-direction: column; gap: 4px; }
+    .vital-label { font-family: 'JetBrains Mono'; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.2em; color: var(--dim); font-weight: 700; }
+    .vital-value { font-family: 'JetBrains Mono'; font-size: 0.85rem; font-weight: 700; color: var(--text); }
+
+    /* Vertical Navigation Columns */
+    .panel-header-bar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 20px; border-bottom: 1px solid var(--line);
+      background: rgba(0, 0, 0, 0.2);
+    }
+    .panel-header-title { font-family: 'JetBrains Mono'; font-size: 0.75rem; font-weight: 800; letter-spacing: 0.25em; text-transform: uppercase; color: var(--accent); }
+    .pulse-node { width: 6px; height: 6px; border-radius: 50%; background: var(--accent2); box-shadow: 0 0 8px var(--accent2); }
+
+    /* =========================================================================
+       THE 8-TAB CONFIGURATION MATRIX SHOWCASE
+       ========================================================================= */
+    .matrix-tabs-container { display: flex; flex-direction: column; height: 100%; }
+    .tabs-navigation-strip {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--line);
+      border-bottom: 1px solid var(--line);
+    }
+    .matrix-tab-trigger {
+      padding: 14px 8px; background: #000; color: var(--muted); font-family: 'JetBrains Mono';
+      font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
+      text-align: center; border: none; transition: all 0.2s var(--transition-fast);
+    }
+    .matrix-tab-trigger:hover { background: rgba(255,255,255,0.02); color: #fff; }
+    .matrix-tab-trigger.active { background: var(--panel-light); color: var(--accent); border-bottom: 2px solid var(--accent); }
+    
+    .tabs-viewport-panes { flex: 1; position: relative; background: rgba(0,0,0,0.15); overflow-y: auto; }
+    .substrate-pane { position: absolute; inset: 0; padding: 20px; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; overflow-y: auto; }
+    .substrate-pane.active { opacity: 1; pointer-events: auto; }
+
+    /* Pane UI Element Sets */
+    .pane-section-title { font-family: 'JetBrains Mono'; font-size: 0.8rem; color: var(--accent); margin-bottom: 16px; text-transform: uppercase; letter-spacing: 1.5px; border-left: 2px solid var(--accent); padding-left: 10px; }
+    .metrics-bento-box { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 20px; }
+    .bento-metric-node { background: rgba(0, 0, 0, 0.4); border: 1px solid var(--line); padding: 16px; border-radius: var(--radius-lg); }
+    .bento-metric-label { font-size: 0.7rem; text-transform: uppercase; color: var(--muted); letter-spacing: 1px; margin-bottom: 6px; }
+    .bento-metric-value { font-family: 'JetBrains Mono'; font-size: 1.6rem; font-weight: 800; color: #fff; }
+    
+    /* Hardware Allocation Progress bars */
+    .allocator-row { margin-bottom: 14px; }
+    .allocator-info { display: flex; justify-content: space-between; font-family: 'JetBrains Mono'; font-size: 0.75rem; margin-bottom: 6px; }
+    .allocator-track { width: 100%; height: 4px; background: rgba(255,255,255,0.05); border-radius: 2px; overflow: hidden; }
+    .allocator-fill { height: 100%; background: var(--accent); width: 0%; transition: width 0.5s ease; }
+
+    /* Vector Core Index Tables */
+    .substrate-table { width: 100%; border-collapse: collapse; font-family: 'JetBrains Mono'; font-size: 0.7rem; text-align: left; }
+    .substrate-table th { padding: 10px; border-bottom: 1px solid var(--line); color: var(--dim); text-transform: uppercase; }
+    .substrate-table td { padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.02); color: #fff; }
+    .substrate-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+    /* Action Trigger Registry Cards */
+    .registry-tool-card { border: 1px solid var(--line); background: rgba(0,0,0,0.3); padding: 14px; border-radius: var(--radius-lg); margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; }
+    .registry-tool-info h5 { font-size: 0.85rem; font-weight: 700; margin-bottom: 4px; }
+    .registry-tool-info p { font-size: 0.75rem; color: var(--muted); }
+    .registry-status-tag { padding: 4px 8px; border-radius: 4px; font-family: 'JetBrains Mono'; font-size: 0.65rem; background: rgba(0,255,188,0.1); color: var(--accent2); }
+
+    /* Core System Logs Strip */
+    .log-stream-box { background: #000; border: 1px solid var(--line); font-family: 'JetBrains Mono'; font-size: 0.75rem; padding: 14px; height: 260px; overflow-y: auto; border-radius: var(--radius-lg); }
+    .log-stream-row { margin-bottom: 6px; line-height: 1.5; color: #a5b0a9; }
+    .log-stream-time { color: var(--dim); margin-right: 8px; }
+    .log-stream-tag { color: var(--accent); }
+
+    /* Config Toggle Elements */
+    .config-switch-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--line); }
+    .config-switch-info h5 { font-size: 0.85rem; font-weight: 600; }
+    .config-switch-info p { font-size: 0.75rem; color: var(--dim); }
+    .switch-trigger { width: 38px; height: 20px; background: rgba(255,255,255,0.08); border-radius: 10px; position: relative; transition: background 0.3s; }
+    .switch-trigger::after { content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; background: #fff; border-radius: 50%; transition: left 0.2s var(--transition-fast); }
+    .switch-trigger.enabled { background: var(--accent); }
+    .switch-trigger.enabled::after { left: 20px; background: #000; }
+
+    /* =========================================================================
+       CENTRAL CORE INTELLIGENCE TERMINAL
+       ========================================================================= */
+    .terminal-container { display: flex; flex-direction: column; height: 100%; min-height: 0; }
+    .terminal-output-body {
+      flex: 1; min-height: 0; overflow-y: auto; padding: 24px;
+      white-space: pre-wrap; line-height: 1.8; font-family: 'JetBrains Mono', monospace;
+      font-size: 0.9rem; color: var(--text);
+    }
+    
+    .terminal-input-strip {
+      display: flex; align-items: center; gap: 12px; padding: 16px 24px;
+      border-top: 1px solid var(--line); background: rgba(0,0,0,0.2);
+    }
+    .terminal-prompt-label { font-family: 'JetBrains Mono'; font-weight: 700; color: var(--accent); }
+    .terminal-core-input {
+      flex: 1; background: transparent; border: none; outline: none;
+      color: var(--text); font-family: inherit; font-size: 0.9rem;
+      caret-color: var(--accent);
+    }
+
+    /* Interactive Functional Action Controls Row */
+    .action-controls-row {
+      display: flex; gap: 8px; flex-wrap: wrap; padding: 12px 24px;
+      border-top: 1px solid var(--line); background: rgba(0,0,0,0.1);
+    }
+    .control-deck-btn {
+      border: 1px solid var(--line); background: rgba(255,255,255,0.02);
+      color: var(--muted); border-radius: 8px; padding: 8px 14px;
+      font-family: inherit; font-size: 0.75rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    .control-deck-btn:hover { border-color: var(--line-active); color: #fff; background: rgba(212,255,0,0.04); }
+
+    /* =========================================================================
+       RIGHT PANELS: TOOL PIPELINES & ASSISTANT GRAPH
+       ========================================================================= */
+    .pipeline-cards-container { display: flex; flex-direction: column; gap: 12px; }
+    .dynamic-pipeline-card {
+      border: 1px solid var(--line); border-radius: var(--radius-lg);
+      background: linear-gradient(145deg, rgba(255,255,255,0.01), transparent);
+      padding: 16px; position: relative; overflow: hidden; animation: pipe-card-in 0.4s var(--transition-fast);
+    }
+    .dynamic-pipeline-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: var(--accent); }
+    @keyframes pipe-card-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    
+    .pipeline-card-header { display: flex; justify-content: space-between; font-family: 'JetBrains Mono'; font-size: 0.65rem; font-weight: bold; text-transform: uppercase; color: var(--accent2); margin-bottom: 10px; }
+    .pipeline-card-row { display: flex; justify-content: space-between; font-size: 0.8rem; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.02); }
+    .pipeline-card-row span:last-child { color: var(--muted); }
+    .pipeline-card-anchor {
+      display: inline-flex; align-items: center; justify-content: center; margin-top: 12px; width: 100%;
+      padding: 10px; border-radius: 8px; border: 1px solid rgba(var(--accent-rgb), 0.2);
+      background: rgba(var(--accent-rgb), 0.05); color: #fff; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    .pipeline-card-anchor:hover { background: rgba(var(--accent-rgb), 0.15); border-color: var(--accent); }
+
+    /* Expanded Assistant Module panel view */
+    .assistant-hub-view { padding: 16px; background: rgba(0,0,0,0.2); border-radius: var(--radius-lg); border: 1px solid var(--line); }
+    .assistant-hub-view h3 { font-size: 1.1rem; color: var(--accent); margin-bottom: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: -0.5px; }
+    .assistant-hub-view p { color: var(--muted); font-size: 0.8rem; line-height: 1.5; margin-bottom: 16px; }
+    .assistant-hub-bento { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .assistant-bento-node { border: 1px solid var(--line); background: rgba(0,0,0,0.3); padding: 12px; border-radius: 8px; }
+    .assistant-bento-node .label { font-family: 'JetBrains Mono'; font-size: 0.6rem; text-transform: uppercase; color: var(--dim); font-weight: bold; }
+    .assistant-bento-node .desc { font-size: 0.75rem; color: #fff; margin-top: 4px; line-height: 1.4; }
+
+    /* Technical Telemetry Micro Chart */
+    .micro-chart-box { height: 90px; border: 1px solid var(--line); border-radius: var(--radius-lg); background: #000; position: relative; overflow: hidden; margin-bottom: 14px; }
+    #microTelemetryCanvas { width: 100%; height: 100%; display: block; }
+
+    /* Generic Utility Items */
+    .output-row-entry { margin-bottom: 8px; }
+    .scramble-span { font-family: 'JetBrains Mono', monospace; }
+    .hud-kbd-indicator { padding: 3px 6px; background: #111518; border: 1px solid #222b30; border-radius: 4px; font-family: 'JetBrains Mono'; font-size: 0.65rem; color: var(--muted); }
+    .bubble-ai-wrapper { border-left: 2px solid var(--accent); padding-left: 16px; background: linear-gradient(90deg, rgba(var(--accent-rgb), 0.03), transparent); margin: 16px 0; }
+
+    /* Responsive Parameters */
+    @media (max-width: 1400px) {
+      .matrix-deck { grid-template-columns: 300px minmax(0, 1fr) 320px; }
+    }
+    @media (max-width: 1200px) {
+      body { overflow-y: auto; }
+      .matrix-deck { grid-template-columns: 1fr; grid-template-rows: auto; height: auto; }
+      .deck-header { grid-column: auto; height: 70px; }
+      .deck-panel { height: 600px; }
+    }
+  </style>
+</head>
+<body>
+
+  <canvas id="vector-canvas"></canvas>
+  <div class="fx-surface scanlines"></div>
+  <div class="fx-surface noise-floor"></div>
+  <div class="fx-surface vignette-shroud"></div>
+
+  <div id="core-dot"></div>
+  <div id="aura-ring"></div>
+
+  <div id="introScreen">
+    <video id="introVideo" autoplay muted loop playsinline preload="auto">
+      <source src="/static/assets/Untitled Project.mp4" type="video/mp4" />
+    </video>
+    <div class="intro-hud">
+      <div class="intro-header-tag">LOFTY_SOVEREIGN_OS // INITIALIZATION_SEQUENCE</div>
+      <div class="intro-footer-wrap">
+        <div class="intro-meta">
+          <h2 class="scramble-init" data-text="TERMINAL INTELLIGENCE ONLINE">TERMINAL INTELLIGENCE ONLINE</h2>
+          <p>Multi-agent processing fabric mapped natively over localized execution pipelines. Grounding operational reasoners directly on enterprise private infrastructure.</p>
+        </div>
+        <button class="intro-skip-prompt dom-node-hover">Initialize Deck Matrix</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="appScreen">
+    <div class="matrix-deck">
+      
+      <header class="deck-panel deck-header">
+        <div class="deck-brand dom-node-hover"><span>LOFTY//</span><span id="deckLabel">SUBSTRATE-X</span></div>
+        <div class="deck-vitals-cluster">
+          <div class="vital-node"><span class="vital-label">Active Thread</span><span class="vital-value" id="threadValue">Ready</span></div>
+          <div class="vital-node"><span class="vital-label">Reasoner Base</span><span class="vital-value" id="modelValue">Mistral-7B</span></div>
+          <div class="vital-node"><span class="vital-label">Clock Frame</span><span class="vital-value" id="clockValue">00:00:00</span></div>
+        </div>
+      </header>
+
+      <aside class="deck-panel">
+        <div class="matrix-tabs-container">
+          
+          <nav class="tabs-navigation-strip">
+            <button class="matrix-tab-trigger active dom-node-hover" data-tab="tab-overview">Overview</button>
+            <button class="matrix-tab-trigger dom-node-hover" data-tab="tab-neural">Neural</button>
+            <button class="matrix-tab-trigger dom-node-hover" data-tab="tab-vector">Vector</button>
+            <button class="matrix-tab-trigger dom-node-hover" data-tab="tab-tools">Registry</button>
+            <button class="matrix-tab-trigger dom-node-hover" data-tab="tab-voice">Audio</button>
+            <button class="matrix-tab-trigger dom-node-hover" data-tab="tab-logs">Logs</button>
+            <button class="matrix-tab-trigger dom-node-hover" data-tab="tab-analytics">Analytics</button>
+            <button class="matrix-tab-trigger dom-node-hover" data-tab="tab-kernel">Kernel</button>
+          </nav>
+
+          <div class="tabs-viewport-panes">
+            
+            <div class="substrate-pane active" id="tab-overview">
+              <h4 class="pane-section-title">Core Substrate Metrics</h4>
+              <div class="metrics-bento-box">
+                <div class="bento-metric-node">
+                  <div class="bento-metric-label">Active Processes</div>
+                  <div class="bento-metric-value">42</div>
+                </div>
+                <div class="bento-metric-node">
+                  <div class="bento-metric-label">Router Paths</div>
+                  <div class="bento-metric-value">1,204</div>
+                </div>
+              </div>
+              <div class="registry-tool-card">
+                <div class="registry-tool-info">
+                  <h5>Sovereign State</h5>
+                  <p>Inference localized over internal memory pipelines.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="substrate-pane" id="tab-neural">
+              <h4 class="pane-section-title">Hardware Thread Map</h4>
+              <div class="allocator-row">
+                <div class="allocator-info"><span>VRAM Allocation</span><span id="vram-pct">68%</span></div>
+                <div class="allocator-track"><div class="allocator-fill" id="vram-bar" style="width: 68%;"></div></div>
+              </div>
+              <div class="allocator-row">
+                <div class="allocator-info"><span>GPU Compute Context</span><span id="gpu-pct">44%</span></div>
+                <div class="allocator-track"><div class="allocator-fill" id="gpu-bar" style="width: 44%; background: var(--accent2);"></div></div>
+              </div>
+            </div>
+
+            <div class="substrate-pane" id="tab-vector">
+              <h4 class="pane-section-title">Semantic RAG Layers</h4>
+              <table class="substrate-table">
+                <thead>
+                  <tr><th>Collection Name</th><th>Dim</th><th>Status</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>core_knowledge_base</td><td>1536</td><td><span style="color:var(--accent);">Active</span></td></tr>
+                  <tr><td>user_session_graph</td><td>1536</td><td><span style="color:var(--accent2);">Synced</span></td></tr>
+                  <tr><td>runtime_file_ast</td><td>768</td><td><span style="color:var(--dim);">Idle</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="substrate-pane" id="tab-tools">
+              <h4 class="pane-section-title">Action Containers</h4>
+              <div class="registry-tool-card">
+                <div class="registry-tool-info">
+                  <h5>Bash Sandbox Environment</h5>
+                  <p>Secure Docker containment logic</p>
+                </div>
+                <div class="registry-status-tag">Isolation</div>
+              </div>
+              <div class="registry-tool-card">
+                <div class="registry-tool-info">
+                  <h5>Puppeteer Core Scraper</h5>
+                  <p>Headless browser extraction module</p>
+                </div>
+                <div class="registry-status-tag">Ready</div>
+              </div>
+            </div>
+
+            <div class="substrate-pane" id="tab-voice">
+              <h4 class="pane-section-title">Full-Duplex Pipelines</h4>
+              <div class="metrics-bento-box">
+                <div class="bento-metric-node">
+                  <div class="bento-metric-label">Latency Loop</div>
+                  <div class="bento-metric-value">98ms</div>
+                </div>
+                <div class="bento-metric-node">
+                  <div class="bento-metric-label">VAD State</div>
+                  <div class="bento-metric-value" style="color: var(--accent2);">Listen</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="substrate-pane" id="tab-logs">
+              <h4 class="pane-section-title">System Log Outputs</h4>
+              <div class="log-stream-box" id="internalLogBox">
+                </div>
+            </div>
+
+            <div class="substrate-pane" id="tab-analytics">
+              <h4 class="pane-section-title">Token Output Densities</h4>
+              <div class="micro-chart-box">
+                <canvas id="microTelemetryCanvas"></canvas>
+              </div>
+              <div class="allocator-info" style="font-size:0.7rem; color:var(--dim);">
+                <span>Graph Series tracking execution frames (1s refresh rate)</span>
+              </div>
+            </div>
+
+            <div class="substrate-pane" id="tab-kernel">
+              <h4 class="pane-section-title">Structural Engine Toggles</h4>
+              <div class="config-switch-row">
+                <div class="config-switch-info">
+                  <h5>Strict JSON Enforcements</h5>
+                  <p>Validate formatting parameters recursively</p>
+                </div>
+                <div class="switch-trigger enabled dom-node-hover" id="toggle-json"></div>
+              </div>
+              <div class="config-switch-row">
+                <div class="config-switch-info">
+                  <h5>Agent Failure Retries</h5>
+                  <p>Attempt execution compilation loops</p>
+                </div>
+                <div class="switch-trigger enabled dom-node-hover" id="toggle-retries"></div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </aside>
+
+      <main class="deck-panel terminal-container" id="terminalSubstratePanel">
+        <div class="panel-header-bar">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div class="pulse-node"></div>
+            <span class="panel-header-title">Sovereign Shell Runtime — System_Bash</span>
+          </div>
+          <span style="font-family: 'JetBrains Mono'; font-size: 0.7rem; color: var(--muted);" id="shellStatusText">Awaiting input stream</span>
+        </div>
+
+        <div class="terminal-output-body" id="terminalOutputBody" aria-live="polite"></div>
+
+        <div class="terminal-input-strip">
+          <span class="terminal-prompt-label" id="shellPromptLabel">lofty&gt;</span>
+          <input id="deckShellInput" class="terminal-core-input" type="text" autocomplete="off" spellcheck="false" placeholder="Execute system commands or run lofty:help..." />
+          <span style="font-family: 'JetBrains Mono'; font-size: 0.7rem; color: var(--dim);">[Enter]</span>
+        </div>
+
+        <div class="action-controls-row">
+          <button class="control-deck-btn dom-node-hover" id="voiceToggleTrigger">Voice Catch</button>
+          <button class="control-deck-btn dom-node-hover" id="speechReplyTrigger">Speech Out</button>
+          <button class="control-deck-btn dom-node-hover" id="ollamaProbeTrigger">Bridge Ollama</button>
+          <button class="control-deck-btn dom-node-hover" id="themeCycleTrigger">Rotate Color</button>
+          <button class="control-deck-btn dom-node-hover" id="shellClearTrigger">Flush Shell</button>
+        </div>
+
+        <div class="panel-header-bar" style="border-top: 1px solid var(--line); border-bottom: none; font-size: 0.7rem; color: var(--dim);">
+          <div>Navigate: <span class="hud-kbd-indicator">↑</span> <span class="hud-kbd-indicator">↓</span> history history matrices</div>
+          <div>Sandboxed execution networks initialized in private localhost loop environments</div>
+        </div>
+      </main>
+
+      <aside class="sidebar-layout">
+        
+        <div class="deck-panel deck-panel-scroll" style="flex: 1; min-height: 0;">
+          <div class="panel-header-title" style="margin-bottom: 16px;">Dynamic Ingestion Pipelines</div>
+          <div class="pipeline-cards-container" id="pipelineCardsContainer">
+            <div class="dynamic-pipeline-card">
+              <div class="pipeline-card-header"><span>Substrate Housing</span><span>Online</span></div>
+              <div class="pipeline-card-row"><span>Ingestion Engine</span><span>Active</span></div>
+              <div class="pipeline-card-row"><span>Sandbox Pipeline</span><span>Isolated</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="deck-panel" style="flex: 0 0 auto;">
+          <div class="panel-header-bar"><span class="panel-header-title">Assistant Workspace Context</span></div>
+          <div style="padding: 16px;">
+            <div class="assistant-hub-view">
+              <h3>Cognitive Module View</h3>
+              <p>Type <span style="color: var(--accent); font-weight: bold;">lofty:assistant</span> inside the prompt to open structural conversation flow matrices down to custom assistant nodes.</p>
+              <div class="assistant-hub-bento" id="assistantBentoNodeWrap">
+                <div class="assistant-bento-node"><div class="label">Fabric</div><div class="desc">Compositional reasoning chains</div></div>
+                <div class="assistant-bento-node"><div class="label">Memory</div><div class="desc">Vector DB persistence layer</div></div>
+                <div class="assistant-bento-node"><div class="label">Action</div><div class="desc">Deterministic Docker wrappers</div></div>
+                <div class="assistant-bento-node"><div class="label">Audio</div><div class="desc">Low-latency vocal codecs</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </aside>
+
+    </div>
+  </div>
+
+  <script>
+    // System Execution Environment Global Storage State
+    const RUNTIME_ENV = {
+      modelProfile: localStorage.getItem('lofty_ollama_model') || 'mistral-7b',
+      activeContextThread: localStorage.getItem('lofty_thread_id') || `thread-${Math.random().toString(36).slice(2, 8)}`
+    };
+
+    // Global DOM Node Mapping References
+    const introScreen = document.getElementById('introScreen');
+    const introVideo = document.getElementById('introVideo');
+    const appScreen = document.getElementById('appScreen');
+    const terminalOutputBody = document.getElementById('terminalOutputBody');
+    const deckShellInput = document.getElementById('deckShellInput');
+    const shellStatusText = document.getElementById('shellStatusText');
+    const shellPromptLabel = document.getElementById('shellPromptLabel');
+    const threadValue = document.getElementById('threadValue');
+    const modelValue = document.getElementById('modelValue');
+    const clockValue = document.getElementById('clockValue');
+    const internalLogBox = document.getElementById('internalLogBox');
+    const pipelineCardsContainer = document.getElementById('pipelineCardsContainer');
+    const assistantBentoNodeWrap = document.getElementById('assistantBentoNodeWrap');
+    
+    // Core Button Controllers Map
+    const voiceToggleTrigger = document.getElementById('voiceToggleTrigger');
+    const speechReplyTrigger = document.getElementById('speechReplyTrigger');
+    const ollamaProbeTrigger = document.getElementById('ollamaProbeTrigger');
+    const themeCycleTrigger = document.getElementById('themeCycleTrigger');
+    const shellClearTrigger = document.getElementById('shellClearTrigger');
+    
+    // Canvas Engines References
+    const vectorCanvas = document.getElementById('vector-canvas');
+    const vectorCtx = vectorCanvas ? vectorCanvas.getContext('2d') : null;
+    const microTelemetryCanvas = document.getElementById('microTelemetryCanvas');
+    const microTelemetryCtx = microTelemetryCanvas ? microTelemetryCanvas.getContext('2d') : null;
+
+    // Structural System States Managers Object
+    const SYSTEM_STATE = {
+      runtimeSessionToken: `SID-${Math.random().toString(36).slice(2, 8).toUpperCase()}`,
+      commandHistoryArray: [],
+      historyPointerIndex: -1,
+      activeInterfaceMode: 'shell',
+      voiceRecognizerActive: false,
+      speechSynthesisAllowed: true,
+      ollamaBridgeConnected: false,
+      internalRequestSequenceTracker: 0,
+      lastEmittedLogRegistry: { content: '', timestamp: 0 },
+      colorThemesRegistry: ['midnight', 'crimson', 'neon'],
+      telemetrySeriesMatrix: {
+        cpuFrequency: Array(60).fill(20),
+        vramDensity: Array(60).fill(50),
+        networkDeltas: Array(60).fill(12)
+      }
+    };
+
+    function escapeHtmlEntities(targetString) {
+      return String(targetString).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
+    }
+
+    function scrollTerminalWorkspaceToBottom() {
+      terminalOutputBody.scrollTop = terminalOutputBody.scrollHeight;
+    }
+
+    function emitShellRowOutput(innerHtmlCode, customCssClass = '') {
+      const sanitizedTextContent = innerHtmlCode.replace(/<[^>]*>/g, '').trim();
+      const currentTimestampClock = Date.now();
+      
+      if (SYSTEM_STATE.lastEmittedLogRegistry.content === sanitizedTextContent && currentTimestampClock - SYSTEM_STATE.lastEmittedLogRegistry.timestamp < 400) return;
+      SYSTEM_STATE.lastEmittedLogRegistry = { content: sanitizedTextContent, timestamp: currentTimestampClock };
+      
+      const rowContainerDiv = document.createElement('div');
+      rowContainerDiv.className = `output-row-entry ${customCssClass}`.trim();
+      rowContainerDiv.innerHTML = innerHtmlCode;
+      terminalOutputBody.appendChild(rowContainerDiv);
+      scrollTerminalWorkspaceToBottom();
+    }
+
+    function generateDynamicPipelineCard({ title, originScope = '', gridDataRows = [], destinationUrl = '', anchorLabelText = '' }) {
+      const cardContainerElement = document.createElement('div');
+      cardContainerElement.className = 'dynamic-pipeline-card';
+      cardContainerElement.innerHTML = `
+        <div class="pipeline-card-header"><span>${escapeHtmlEntities(title)}</span><span>${escapeHtmlEntities(originScope)}</span></div>
+        ${gridDataRows.map(row => `<div class="pipeline-card-row"><span>${escapeHtmlEntities(row[0])}</span><span>${escapeHtmlEntities(row[1])}</span></div>`).join('')}
+        ${destinationUrl ? `<a class="pipeline-card-anchor dom-node-hover" href="${escapeHtmlEntities(destinationUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtmlEntities(anchorLabelText || destinationUrl)} OPEN</a>` : ''}
+      `;
+      pipelineCardsContainer.prepend(cardContainerElement);
+      
+      // Wire up hover tracking state directly for newly injected components
+      cardContainerElement.querySelectorAll('.dom-node-hover').forEach(node => {
+        node.addEventListener('mouseenter', () => document.body.classList.add('hovering-node'));
+        node.addEventListener('mouseleave', () => document.body.classList.remove('hovering-node'));
+      });
+    }
+
+    function switchSystemThemePalette(themeIdentifierName) {
+      if (themeIdentifierName === 'crimson') {
+        document.documentElement.style.setProperty('--accent', '#ff2a6d');
+        document.documentElement.style.setProperty('--accent-rgb', '255, 42, 109');
+        document.documentElement.style.setProperty('--accent2', '#ff5e00');
+      } else if (themeIdentifierName === 'neon') {
+        document.documentElement.style.setProperty('--accent', '#05ffa1');
+        document.documentElement.style.setProperty('--accent-rgb', '5, 255, 161');
+        document.documentElement.style.setProperty('--accent2', '#d4ff00');
+      } else {
+        document.documentElement.style.setProperty('--accent', '#D4FF00');
+        document.documentElement.style.setProperty('--accent-rgb', '212, 255, 0');
+        document.documentElement.style.setProperty('--accent2', '#00ffbc');
+      }
+      document.body.setAttribute('data-theme', themeIdentifierName);
+    }
+
+    function transitionExecutionMode(targetModeId) {
+      SYSTEM_STATE.activeInterfaceMode = targetModeId;
+      if (targetModeId === 'assistant') {
+        shellPromptLabel.textContent = 'lofty_AI>';
+        deckLabel.textContent = 'NEURAL-CHAT';
+      } else {
+        shellPromptLabel.textContent = 'lofty>';
+        deckLabel.textContent = 'SUBSTRATE-X';
+      }
+    }
+
+    // Secondary Telemetry Analytics Matrix Canvas Render Pipeline
+    function resizeMicroAnalyticsCanvas() {
+      if (!microTelemetryCanvas || !microTelemetryCtx) return;
+      const boundingClientRect = microTelemetryCanvas.getBoundingClientRect();
+      const devicePixelRatioFactor = Math.max(1, window.devicePixelRatio || 1);
+      microTelemetryCanvas.width = Math.max(1, Math.floor(boundingClientRect.width * devicePixelRatioFactor));
+      microTelemetryCanvas.height = Math.max(1, Math.floor(boundingClientRect.height * devicePixelRatioFactor));
+      microTelemetryCtx.setTransform(devicePixelRatioFactor, 0, 0, devicePixelRatioFactor, 0, 0);
+    }
+
+    function populateNextTelemetryStep(dataSeries, lowerBound, upperBound, volatilityFactor) {
+      const historicalLastValue = dataSeries[dataSeries.length - 1] ?? lowerBound;
+      let calculatedNextStepValue = historicalLastValue + (Math.random() - 0.5) * volatilityFactor;
+      if (calculatedNextStepValue < lowerBound) calculatedNextStepValue = lowerBound + Math.random() * 5;
+      if (calculatedNextStepValue > upperBound) calculatedNextStepValue = upperBound - Math.random() * 5;
+      dataSeries.push(calculatedNextStepValue);
+      if (dataSeries.length > 60) dataSeries.shift();
+    }
+
+    function traceVectorDataLine(context2d, seriesData,strokeHexColor, areaWidth, areaHeight) {
+      const pointSpacingHorizontal = areaWidth / (seriesData.length - 1);
+      context2d.save();
+      context2d.strokeStyle = strokeHexColor;
+      context2d.lineWidth = 2;
+      context2d.lineCap = 'round';
+      context2d.lineJoin = 'round';
+      context2d.beginPath();
+      for (let idx = 0; idx < seriesData.length; idx++) {
+        const computedCoordinateX = idx * pointSpacingHorizontal;
+        const computedCoordinateY = areaHeight - (seriesData[idx] / 100) * areaHeight;
+        if (idx === 0) {
+          context2d.moveTo(computedCoordinateX, computedCoordinateY);
+        } else {
+          const previousCoordinateX = (idx - 1) * pointSpacingHorizontal;
+          const previousCoordinateY = areaHeight - (seriesData[idx - 1] / 100) * areaHeight;
+          const midPointX = (previousCoordinateX + computedCoordinateX) / 2;
+          const midPointY = (previousCoordinateY + computedCoordinateY) / 2;
+          context2d.quadraticCurveTo(previousCoordinateX, previousCoordinateY, midPointX, midPointY);
+        }
+      }
+      context2d.stroke();
+      context2d.restore();
+    }
+
+    function runMicroAnalyticsRenderLoop() {
+      if (!microTelemetryCtx || !microTelemetryCanvas) return;
+      requestAnimationFrame(runMicroAnalyticsRenderLoop);
+      const viewWidth = microTelemetryCanvas.width / (window.devicePixelRatio || 1);
+      const viewHeight = microTelemetryCanvas.height / (window.devicePixelRatio || 1);
+      if (!viewWidth || !viewHeight) return;
+
+      const ctx = microTelemetryCtx;
+      ctx.clearRect(0, 0, viewWidth, viewHeight);
+
+      // Render Background Grid Line Arrays
+      ctx.strokeStyle = 'rgba(255,255,255,0.03)';
+      ctx.lineWidth = 1;
+      for (let i = 0; i <= 4; i++) {
+        const lineY = (viewHeight / 4) * i;
+        ctx.beginPath(); ctx.moveTo(0, lineY); ctx.lineTo(viewWidth, lineY); ctx.stroke();
+      }
+
+      populateNextTelemetryStep(SYSTEM_STATE.telemetrySeriesMatrix.cpuFrequency, 15, 85, 5);
+      populateNextTelemetryStep(SYSTEM_STATE.telemetrySeriesMatrix.vramDensity, 30, 75, 2);
+      populateNextTelemetryStep(SYSTEM_STATE.telemetrySeriesMatrix.networkDeltas, 5, 45, 8);
+
+      const computedAccentStyleColor = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+      const computedAccent2StyleColor = getComputedStyle(document.documentElement).getPropertyValue('--accent2').trim();
+
+      traceVectorDataLine(ctx, SYSTEM_STATE.telemetrySeriesMatrix.cpuFrequency, computedAccentStyleColor, viewWidth, viewHeight);
+      traceVectorDataLine(ctx, SYSTEM_STATE.telemetrySeriesMatrix.vramDensity, computedAccent2StyleColor, viewWidth, viewHeight);
+      traceVectorDataLine(ctx, SYSTEM_STATE.telemetrySeriesMatrix.networkDeltas, '#ff4d6d', viewWidth, viewHeight);
+    }
+
+    // Comprehensive Browser vocal API Managers System
+    const GlobalSpeechRecognitionEngine = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let infrastructureSpeechRecognizerNode = null;
+    if (GlobalSpeechRecognitionEngine) {
+      infrastructureSpeechRecognizerNode = new GlobalSpeechRecognitionEngine();
+      infrastructureSpeechRecognizerNode.lang = 'en-US';
+      infrastructureSpeechRecognizerNode.interimResults = false;
+      infrastructureSpeechRecognizerNode.maxAlternatives = 1;
+    }
+
+    function triggerVocalSpeechSynthesis(plainTextContent) {
+      if (!SYSTEM_STATE.speechSynthesisAllowed || !('speechSynthesis' in window)) return;
+      const textProcessingUtteranceNode = new SpeechSynthesisUtterance(String(plainTextContent).replace(/<[^>]*>/g, ' '));
+      textProcessingUtteranceNode.rate = 1.05;
+      textProcessingUtteranceNode.pitch = 1.0;
+      textProcessingUtteranceNode.lang = 'en-US';
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.speak(textProcessingUtteranceNode);
+    }
+
+    async function initializeVoiceCapturePipeline() {
+      if (!infrastructureSpeechRecognizerNode) {
+        emitShellRowOutput(`<span class="error">// PIPELINE FAILURE: Speech processing modules unsupported in execution environment.</span>`);
+        return;
+      }
+      shellStatusText.textContent = 'Streaming Audio Node';
+      emitShellRowOutput(`<span class="accent2">// AUDIO INGESTION ACTIVE:</span> Initializing bi-directional listener capture loop.`);
+      infrastructureSpeechRecognizerNode.start();
+      
+      infrastructureSpeechRecognizerNode.onresult = (eventEvent) => {
+        const processedTranscriptText = eventEvent.results[0][0].transcript.trim();
+        if (!processedTranscriptText) return;
+        deckShellInput.value = '';
+        processPipelineCommandSubmission(processedTranscriptText, true);
+      };
+      
+      infrastructureSpeechRecognizerNode.onerror = (errorEvent) => {
+        emitShellRowOutput(`<span class="error">// CAPTURE FAULT:</span> Vocal processing node caught exceptions: ${escapeHtmlEntities(errorEvent.error || 'Fault Unknown')}`);
+        shellStatusText.textContent = 'System Operational';
+      };
+      
+      infrastructureSpeechRecognizerNode.onend = () => {
+        shellStatusText.textContent = 'System Operational';
+      };
+    }
+
+    // Structural Simulation Backend Call Handlers
+    async function executeRemoteContextFetch(session_id, message, model) {
+      const networkResponseNode = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ session_id, message, model })
+      });
+      if (!networkResponseNode.ok) throw new Error(`Server Fault Flagged: Status Code ${networkResponseNode.status}`);
+      return networkResponseNode.json();
+    }
+
+    function processSovereignInternalToolHook(commandInputString) {
+      const structuredCommandText = commandInputString.trim();
+      const normalizedCommandLower = structuredCommandText.toLowerCase();
+
+      if (normalizedCommandLower === 'lofty:help') {
+        emitShellRowOutput(`<span class="accent">== LOFTY OS STRUCTURAL REGISTRY COMMANDS ==</span>`);
+        emitShellRowOutput(`<span class="muted">lofty:help</span> <span class="dim">— Emits functional runtime instructions directory map.</span>`);
+        emitShellRowOutput(`<span class="muted">lofty:assistant</span> <span class="dim">— Re-activates conversational assistant dashboard array matrices.</span>`);
+        emitShellRowOutput(`<span class="muted">lofty:new</span> <span class="dim">— Flushes target interface structures for pristine operational shell frames.</span>`);
+        emitShellRowOutput(`<span class="muted">lofty:voice</span> <span class="dim">— Toggles internal Speech Recognition API capture systems.</span>`);
+        emitShellRowOutput(`<span class="muted">lofty:speak on/off</span> <span class="dim">— Modulates verbal synthesis response engines.</span>`);
+        emitShellRowOutput(`<span class="muted">lofty:theme midnight|crimson|neon</span> <span class="dim">— Mutates system global color accent pipelines.</span>`);
+        emitShellRowOutput(`<span class="muted">lofty:model [model_id]</span> <span class="dim">— Targets alternate active inference model endpoints.</span>`);
+        emitShellRowOutput(`<span class="muted">lofty:link [url]</span> <span class="dim">— Emits cross-origin click-ready hyper-node cards.</span>`);
+        emitShellRowOutput(`<span class="muted">lofty:search [query]</span> <span class="dim">— Packages deterministic search query nodes instantly.</span>`);
+        emitShellRowOutput(`<span class="muted">lofty:clear</span> <span class="dim">— Clears shell execution viewport rows.</span>`);
+        return true;
+      }
+
+      if (normalizedCommandLower === 'lofty:assistant') {
+        transitionExecutionMode('assistant');
+        assistantBentoNodeWrap.innerHTML = `
+          <div class="assistant-bento-node"><div class="label">Chat Monitor</div><div class="desc">Active conversation routing channel configured.</div></div>
+          <div class="assistant-bento-node"><div class="label">Telemetry</div><div class="desc">Private localhost loops confirmed stable.</div></div>
+          <div class="assistant-bento-node"><div class="label">Sandbox</div><div class="desc">Docker environment initialized.</div></div>
+          <div class="assistant-bento-node"><div class="label">Substrate</div><div class="desc">Graph matrix memory synchronization pipeline secure.</div></div>
+        `;
+        emitShellRowOutput(`<span class="accent">// HUD ACTION: Workspace context shifted down to assistant conversational matrices.</span>`);
+        return true;
+      }
+
+      if (normalizedCommandLower === 'lofty:new') {
+        SYSTEM_STATE.runtimeSessionToken = `SID-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
+        SYSTEM_STATE.commandHistoryArray = [];
+        SYSTEM_STATE.historyPointerIndex = -1;
+        terminalOutputBody.innerHTML = '';
+        transitionExecutionMode('shell');
+        emitShellRowOutput(`<span class="accent2">// SYSTEM MODULATION: Host workspace context flushed completely clean. Pristine shell frame active.</span>`);
+        generateDynamicPipelineCard({ title: 'FABRIC REGENERATION', originScope: 'PRISTINE', gridDataRows: [['token_id', SYSTEM_STATE.runtimeSessionToken], ['cache_state', 'cleared'], ['kernel_mode', 'isolated_shell']] });
+        return true;
+      }
+
+      if (normalizedCommandLower.startsWith('lofty:theme')) {
+        const chosenThemeSegment = structuredCommandText.split(/\s+/)[1] || 'midnight';
+        if (!SYSTEM_STATE.colorThemesRegistry.includes(chosenThemeSegment)) {
+          emitShellRowOutput(`<span class="error">// ACCENT CONFIG FAULT: Target palette theme parameters unrecognized. Select: midnight, crimson, neon.</span>`);
+        } else {
+          switchSystemThemePalette(chosenThemeSegment);
+          localStorage.setItem('lofty_theme', chosenThemeSegment);
+          emitShellRowOutput(`<span class="accent">// PALETTE INITIALIZED: Transferred system accent engine to ${chosenThemeSegment.toUpperCase()} array matrices.</span>`);
+          generateDynamicPipelineCard({ title: 'ACCENT DEPLOYMENT', originScope: chosenThemeSegment.toUpperCase(), gridDataRows: [['system_state', 'stable'], ['render_mode', 'hardware_accelerated']] });
+        }
+        return true;
+      }
+
+      if (normalizedCommandLower === 'lofty:voice') {
+        SYSTEM_STATE.voiceRecognizerActive = !SYSTEM_STATE.voiceRecognizerActive;
+        emitShellRowOutput(`<span class="accent">// MONITOR METRIC: Voice pipeline audio ingestion ${SYSTEM_STATE.voiceRecognizerActive ? 'ENGAGED' : 'OFFLINE'}.</span>`);
+        if (SYSTEM_STATE.voiceRecognizerActive && infrastructureSpeechRecognizerNode) initializeVoiceCapturePipeline();
+        return true;
+      }
+
+      if (normalizedCommandLower.startsWith('lofty:speak')) {
+        const extractionArgument = (structuredCommandText.split(/\s+/)[1] || '').toLowerCase();
+        SYSTEM_STATE.speechSynthesisAllowed = extractionArgument !== 'off';
+        emitShellRowOutput(`<span class="accent">// MONITOR METRIC: Outbound verbal synthesis layers modulated to ${SYSTEM_STATE.speechSynthesisAllowed ? 'ACTIVE' : 'DEACTIVATED'}.</span>`);
+        return true;
+      }
+
+      if (normalizedCommandLower.startsWith('lofty:model')) {
+        const requestedTargetModel = structuredCommandText.split(/\s+/)[1];
+        if (!requestedTargetModel) {
+          emitShellRowOutput(`<span class="error">// CONFIG FAULT: Explicit Model Profile targets expected. Usage syntax: lofty:model [model_id]</span>`);
+        } else {
+          RUNTIME_ENV.modelProfile = requestedTargetModel;
+          localStorage.setItem('lofty_ollama_model', requestedTargetModel);
+          modelValue.textContent = requestedTargetModel;
+          emitShellRowOutput(`<span class="accent2">// KERNEL RE-ALLOCATION: Sovereign inference endpoint targeted cleanly to profile: ${requestedTargetModel}</span>`);
+          generateDynamicPipelineCard({ title: 'MODEL ROUTER UPDATE', originScope: 'ENDPOINT', gridDataRows: [['target_profile', requestedTargetModel], ['bridge_hook', '/api/chat']] });
+        }
+        return true;
+      }
+
+      if (normalizedCommandLower.startsWith('lofty:link')) {
+        let extractedTargetUrl = structuredCommandText.replace(/^lofty:link\s+/i, '').trim();
+        if (!extractedTargetUrl) {
+          emitShellRowOutput(`<span class="error">// TOOL FAULT: Explicit Uniform Resource Locators expected. Usage syntax: lofty:link [url]</span>`);
+        } else {
+          if (!/^https?:\/\//i.test(extractedTargetUrl)) extractedTargetUrl = `https://${extractedTargetUrl}`;
+          generateDynamicPipelineCard({ title: 'EXTERNAL CONSUMPTION LAYER', originScope: 'CLICK_VALIDATED', gridDataRows: [['protocol', 'https_cross_origin'], ['status', 'ready'], ['bridge', 'browser_tool']], destinationUrl: extractedTargetUrl, anchorLabelText: 'Consume Destination Link Node' });
+          emitShellRowOutput(`<span class="accent2">// CARD RENDERED: Target programmatic link module compiled cleanly into ingestion stream pipelines.</span>`);
+        }
+        return true;
+      }
+
+      if (normalizedCommandLower.startsWith('lofty:search')) {
+        const analyticalSearchQuery = structuredCommandText.replace(/^lofty:search\s+/i, '').trim();
+        if (!analyticalSearchQuery) {
+          emitShellRowOutput(`<span class="error">// TOOL FAULT: Search query parameter elements expected. Usage syntax: lofty:search [query]</span>`);
+        } else {
+          const formattedSearchUrlNode = `https://www.google.com/search?q=${encodeURIComponent(analyticalSearchQuery)}`;
+          generateDynamicPipelineCard({ title: 'REALTIME INGESTION MATRIX', originScope: 'QUERY_GRAPH', gridDataRows: [['search_term', analyticalSearchQuery], ['engine_target', 'google_index_query']], destinationUrl: formattedSearchUrlNode, anchorLabelText: `Query Index: "${analyticalSearchQuery}"` });
+          emitShellRowOutput(`<span class="accent">// CARD RENDERED: Automated real-time query interface module appended into runtime frame layouts.</span>`);
+        }
+        return true;
+      }
+
+      if (normalizedCommandLower === 'lofty:clear') {
+        terminalOutputBody.innerHTML = '';
+        emitShellRowOutput(`<span class="dim">// Visual shell rows cleared. Core engine active.</span>`);
+        return true;
+      }
+
+      return false;
+    }
+
+    async function processPipelineCommandSubmission(rawTextLineValue, initiatedFromVoiceNode = false) {
+      const filteredCleanInput = rawTextLineValue.trim();
+      if (!filteredCleanInput) return;
+      const temporalExecutionStamp = Date.now();
+      
+      SYSTEM_STATE.commandHistoryArray.push(filteredCleanInput);
+      SYSTEM_STATE.historyPointerIndex = SYSTEM_STATE.commandHistoryArray.length;
+      
+      const operationalPrefixPrompt = SYSTEM_STATE.activeInterfaceMode === 'assistant' ? 'lofty_AI&gt;' : 'lofty&gt;';
+      emitShellRowOutput(`<span class="terminal-prompt-label">${operationalPrefixPrompt}</span> ${escapeHtmlEntities(filteredCleanInput)}`);
+      shellStatusText.textContent = 'Processing Substrate Fabric';
+
+      if (processSovereignInternalToolHook(filteredCleanInput)) {
+        shellStatusText.textContent = 'System Operational';
+        return;
+      }
+
+      if (filteredCleanInput.toLowerCase() === 'lofty:connect') {
+        try {
+          const validationNetworkProbe = await fetch('/api/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ session_id: SYSTEM_STATE.runtimeSessionToken, message: 'ping_probe_validation', model: RUNTIME_ENV.modelProfile })
+          });
+          if (!validationNetworkProbe.ok) throw new Error(`Probe Handshake Terminated: ${validationNetworkProbe.status}`);
+          SYSTEM_STATE.ollamaBridgeConnected = true;
+          emitShellRowOutput(`<span class="accent2">// INFRASTRUCTURE HANDSHAKE: Local Ollama instance connection verified stable. Inter-process pipelines secure.</span>`);
+        } catch (exceptionErr) {
+          SYSTEM_STATE.ollamaBridgeConnected = false;
+          emitShellRowOutput(`<span class="error">// INFRASTRUCTURE FAULT: Unable to resolve local loop port endpoints (localhost:11434). Verify connection states.</span>`);
+        }
+        shellStatusText.textContent = 'System Operational';
+        return;
+      }
+
+      const isolatedTrackingSequenceId = ++SYSTEM_STATE.internalRequestSequenceTracker;
+      try {
+        const responseDataPayload = await executeRemoteContextFetch(SYSTEM_STATE.runtimeSessionToken, filteredCleanInput, RUNTIME_ENV.modelProfile);
+        if (isolatedTrackingSequenceId !== SYSTEM_STATE.internalRequestSequenceTracker) return;
+        
+        SYSTEM_STATE.ollamaBridgeConnected = true;
+        const compiledSynthesisReply = responseDataPayload?.reply ? String(responseDataPayload.reply) : '// ERROR: Empty response matrices returned from target language node configuration.';
+        
+        emitShellRowOutput(`<span class="accent">Lofty Core Reasoner</span>: ${escapeHtmlEntities(compiledSynthesisReply)}`, 'bubble-ai-wrapper');
+        triggerVocalSpeechSynthesis(compiledSynthesisReply);
+        
+        if (responseDataPayload?.tool?.type === 'link' && responseDataPayload.tool.url) {
+          generateDynamicPipelineCard({ title: responseDataPayload.tool.title || 'AUTONOMOUS ACTIONS LAYER', originScope: 'REASONER_INGEST', gridDataRows: [['destination_link', responseDataPayload.tool.url], ['state', 'compiled_execution']], destinationUrl: responseDataPayload.tool.url, anchorLabelText: responseDataPayload.tool.label || 'Open Ingest Link Module' });
+        }
+      } catch (runtimeNetworkException) {
+        if (isolatedTrackingSequenceId !== SYSTEM_STATE.internalRequestSequenceTracker) return;
+        SYSTEM_STATE.ollamaBridgeConnected = false;
+        emitShellRowOutput(`<span class="error">// COMMUNICATION FAULT: Outbound query packet failed to resolve server endpoint boundaries. Confirm private routing access or run lofty:connect to retry.</span>`, 'bubble-ai-wrapper');
+      } finally {
+        if (isolatedTrackingSequenceId === SYSTEM_STATE.internalRequestSequenceTracker) {
+          shellStatusText.textContent = 'System Operational';
+        }
+      }
+    }
+
+    // Interactive Action Buttons Trigger Event Bindings
+    deckShellInput.addEventListener('keydown', (keyEvent) => {
+      if (keyEvent.key === 'Enter') {
+        keyEvent.preventDefault();
+        const parameterValueString = deckShellInput.value;
+        deckShellInput.value = '';
+        processPipelineCommandSubmission(parameterValueString);
+      } else if (keyEvent.key === 'ArrowUp') {
+        keyEvent.preventDefault();
+        if (SYSTEM_STATE.historyPointerIndex > 0) {
+          SYSTEM_STATE.historyPointerIndex--;
+          deckShellInput.value = SYSTEM_STATE.commandHistoryArray[SYSTEM_STATE.historyPointerIndex] || '';
+        }
+      } else if (keyEvent.key === 'ArrowDown') {
+        keyEvent.preventDefault();
+        if (SYSTEM_STATE.historyPointerIndex < SYSTEM_STATE.commandHistoryArray.length - 1) {
+          SYSTEM_STATE.historyPointerIndex++;
+          deckShellInput.value = SYSTEM_STATE.commandHistoryArray[SYSTEM_STATE.historyPointerIndex] || '';
+        } else {
+          SYSTEM_STATE.historyPointerIndex = SYSTEM_STATE.commandHistoryArray.length;
+          deckShellInput.value = '';
+        }
+      }
+    });
+
+    document.addEventListener('click', () => {
+      if (appScreen.classList.contains('active')) deckShellInput.focus();
+    });
+
+    voiceToggleTrigger.addEventListener('click', async () => {
+      SYSTEM_STATE.voiceRecognizerActive = true;
+      await initializeVoiceCapturePipeline();
+    });
+
+    speechReplyTrigger.addEventListener('click', () => {
+      SYSTEM_STATE.speechSynthesisAllowed = !SYSTEM_STATE.speechSynthesisAllowed;
+      speechReplyTrigger.textContent = SYSTEM_STATE.speechSynthesisAllowed ? 'Speech Out' : 'Speech Muted';
+      emitShellRowOutput(`<span class="accent">// LAYER CONFIGURATION: Outbound verbal audio mapping tracking shifted to ${SYSTEM_STATE.speechSynthesisAllowed ? 'ACTIVE' : 'MUTED'}.</span>`);
+    });
+
+    ollamaProbeTrigger.addEventListener('click', async () => {
+      emitShellRowOutput(`<span class="accent2">// INTER-PROCESS PROBE: Broadcasting verification ping to localhost inference engine pipelines...</span>`);
+      await processPipelineCommandSubmission('lofty:connect');
+    });
+
+    shellClearTrigger.addEventListener('click', () => {
+      terminalOutputBody.innerHTML = '';
+      SYSTEM_STATE.lastEmittedLogRegistry = { content: '', timestamp: 0 };
+      emitShellRowOutput(`<span class="dim">// Terminal UI workspace buffer lines flushed successfully.</span>`);
+    });
+
+    themeCycleTrigger.addEventListener('click', () => {
+      const activeCurrentTheme = document.body.getAttribute('data-theme') || 'midnight';
+      const targetedNextThemeIndex = (SYSTEM_STATE.colorThemesRegistry.indexOf(activeCurrentTheme) + 1) % SYSTEM_STATE.colorThemesRegistry.length;
+      const computedNextThemeString = SYSTEM_STATE.colorThemesRegistry[targetedNextThemeIndex];
+      switchSystemThemePalette(computedNextThemeString);
+      localStorage.setItem('lofty_theme', computedNextThemeString);
+      emitShellRowOutput(`<span class="accent">// CONFIG UPDATE: Core system color channel switched onto theme profile: ${computedNextThemeString.toUpperCase()}</span>`);
+    });
+
+    // =========================================================================
+    // THE 8-TAB NAVIGATION PANE ELEMENT MANAGER ENGINE
+    // =========================================================================
+    const subTabTriggers = document.querySelectorAll('.matrix-tab-trigger');
+    const subTabPanes = document.querySelectorAll('.substrate-pane');
+
+    subTabTriggers.forEach(triggerBtn => {
+      triggerBtn.addEventListener('click', () => {
+        subTabTriggers.forEach(btn => btn.classList.remove('active'));
+        subTabPanes.forEach(pane => pane.classList.remove('active'));
+
+        triggerBtn.classList.add('active');
+        const targetPaneId = triggerBtn.getAttribute('data-tab');
+        document.getElementById(targetPaneId).classList.add('active');
+        
+        emitShellRowOutput(`<span class="dim">// PANE TRANSITION: Matrix workspace shifted view context towards tab section: ${targetPaneId.replace('tab-', '').toUpperCase()}</span>`);
+      });
+    });
+
+    // Substrate Console Systems Switch Toggles Manager
+    document.querySelectorAll('.switch-trigger').forEach(toggleElement => {
+      toggleElement.addEventListener('click', () => {
+        toggleElement.classList.toggle('enabled');
+        const operationalSwitchId = toggleElement.getAttribute('id');
+        const booleanActiveState = toggleElement.classList.contains('enabled');
+        emitShellRowOutput(`<span class="dim">// TOGGLE SYNC: Configuration parameter state [${operationalSwitchId.toUpperCase()}] updated to: ${booleanActiveState}</span>`);
+      });
+    });
+
+    // System Log Box Content Stream Simulator Loop
+    const runtimeSimLogs = [
+      "sys.verify_index(fabric_node='vdb_local_shard_01')",
+      "Establishing cosine similarity semantic trajectory mapping vector...",
+      "Graph sequence validation synchronized // pipeline_cluster_alpha",
+      "Parsing real-time ingestion matrices for local context boundaries...",
+      "Docker runtime encapsulation verification state: sandbox_secure == true",
+      "Memory stack allocations structurally compacted. VRAM leak metrics: 0.00%",
+      "Awaiting conversational interface transaction loops..."
+    ];
+
+    setInterval(() => {
+      if (document.getElementById('tab-logs').classList.contains('active')) {
+        const singleLogLineWrapper = document.createElement('div');
+        singleLogLineWrapper.className = 'log-stream-row';
+        const currentTimeClockFormat = new Date().toISOString().split('T')[1].substring(0,8);
+        const randomPulledLogString = runtimeSimLogs[Math.floor(Math.random() * runtimeSimLogs.length)];
+        
+        singleLogLineWrapper.innerHTML = `<span class="log-stream-time">[${currentTimeClockFormat}]</span> <span class="log-stream-tag">></span> <span>${randomPulledLogString}</span>`;
+        internalLogBox.prepend(singleLogLineWrapper);
+        
+        if (internalLogBox.children.length > 10) {
+          internalLogBox.removeChild(internalLogBox.lastChild);
+        }
+      }
+    }, 1500);
+
+    // =========================================================================
+    // HIGH-PERFORMANCE FLOW-FIELD VECTOR PARTICLES ENGINE (CANVAS)
+    // =========================================================================
+    let activeCanvasWidth, activeCanvasHeight;
+    let mathematicalFlowParticlesPool = [];
+    let processingCursorCoordinateTrackingNode = { coordX: 0, coordY: 0, userIsInteracting: false };
+
+    function calculateCanvasScaleBoundaries() {
+      if (!vectorCanvas || !vectorCtx) return;
+      activeCanvasWidth = vectorCanvas.width = window.innerWidth;
+      activeCanvasHeight = vectorCanvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', calculateCanvasScaleBoundaries);
+    calculateCanvasScaleBoundaries();
+
+    window.addEventListener('mousemove', (mouseMoveEvent) => {
+      processingCursorCoordinateTrackingNode.coordX = mouseMoveEvent.clientX;
+      processingCursorCoordinateTrackingNode.coordY = mouseMoveEvent.clientY;
+      processingCursorCoordinateTrackingNode.userIsInteracting = true;
+    });
+    window.addEventListener('mouseleave', () => processingCursorCoordinateTrackingNode.userIsInteracting = false);
+
+    class AttractorVectorParticle {
+      constructor() {
+        this.recalculateParticleCoreState();
+      }
+      recalculateParticleCoreState() {
+        this.posX = Math.random() * activeCanvasWidth;
+        this.posY = Math.random() * activeCanvasHeight;
+        this.movementVelocity = Math.random() * 1.2 + 0.4;
+        this.trajectoryAngle = Math.random() * Math.PI * 2;
+        this.totalNodeLifespan = Math.random() * 240 + 120;
+        this.renderAlphaOpacity = Math.random() * 0.5 + 0.15;
+      }
+      advanceMathematicalPhysicsStep() {
+        // Compute base flow-field vector paths across trigonometry coordinate calculations
+        this.trajectoryAngle += (Math.sin(this.posX * 0.004) + Math.cos(this.posY * 0.004)) * 0.015;
+        
+        // Gravitational cursor attractor routing calculations
+        if (processingCursorCoordinateTrackingNode.userIsInteracting) {
+          let deltaDistanceX = processingCursorCoordinateTrackingNode.coordX - this.posX;
+          let deltaDistanceY = processingCursorCoordinateTrackingNode.coordY - this.posY;
+          let linearHypotenuseDistance = Math.sqrt(deltaDistanceX * deltaDistanceX + deltaDistanceY * deltaDistanceY);
+          if (linearHypotenuseDistance < 220) {
+            let localizedPullForceFactor = (220 - linearHypotenuseDistance) / 220 * 0.04;
+            this.trajectoryAngle += Math.atan2(deltaDistanceY, deltaDistanceX) * localizedPullForceFactor - this.trajectoryAngle * localizedPullForceFactor;
+          }
+        }
+
+        this.posX += Math.cos(this.trajectoryAngle) * this.movementVelocity;
+        this.posY += Math.sin(this.trajectoryAngle) * this.movementVelocity;
+        this.totalNodeLifespan--;
+
+        if (this.totalNodeLifespan <= 0 || this.posX < 0 || this.posX > activeCanvasWidth || this.posY < 0 || this.posY > activeCanvasHeight) {
+          this.recalculateParticleCoreState();
+        }
+      }
+      paintParticleVectorNode() {
+        vectorCtx.beginPath();
+        vectorCtx.arc(this.posX, this.posY, 0.85, 0, Math.PI * 2);
+        vectorCtx.fillStyle = `rgba(212, 255, 0, ${this.renderAlphaOpacity})`;
+        vectorCtx.fill();
+      }
+    }
+
+    const calculatedScreenDensityCap = Math.min(window.innerWidth / 6, 220);
+    for (let idx = 0; idx < calculatedScreenDensityCap; idx++) {
+      mathematicalFlowParticlesPool.push(new AttractorVectorParticle());
+    }
+
+    function globalVectorCanvasRenderFrameLoop() {
+      // Blending trail mechanic to form high-end glowing vector path trails over frames
+      vectorCtx.fillStyle = 'rgba(2, 2, 3, 0.07)';
+      vectorCtx.fillRect(0, 0, activeCanvasWidth, activeCanvasHeight);
+
+      mathematicalFlowParticlesPool.forEach(particleNode => {
+        particleNode.advanceMathematicalPhysicsStep();
+        particleNode.paintParticleVectorNode();
+      });
+      requestAnimationFrame(globalVectorCanvasRenderFrameLoop);
+    }
+    globalVectorCanvasRenderFrameLoop();
+
+    // Smooth Cursor Tracking Interpolation Loop (LERP)
+    const interpolationCoreDot = document.getElementById('core-dot');
+    const interpolationAuraRing = document.getElementById('aura-ring');
+    let trackingCoordinatesTargetX = window.innerWidth / 2, trackingCoordinatesTargetY = window.innerHeight / 2;
+    let structuralRingX = trackingCoordinatesTargetX, structuralRingY = trackingCoordinatesTargetY;
+
+    window.addEventListener('mousemove', (motionEvent) => {
+      trackingCoordinatesTargetX = motionEvent.clientX;
+      trackingCoordinatesTargetY = motionEvent.clientY;
+      interpolationCoreDot.style.transform = `translate(${trackingCoordinatesTargetX}px, ${trackingCoordinatesTargetY}px)`;
+    });
+
+    function interpolationCursorFrameLoop() {
+      let relativeDistanceDeltaX = trackingCoordinatesTargetX - structuralRingX;
+      let relativeDistanceDeltaY = trackingCoordinatesTargetY - structuralRingY;
+      
+      // Damping modifier calculations (0.16 multiplier delivers responsive magnetic follow lag effects)
+      structuralRingX += relativeDistanceDeltaX * 0.16;
+      structuralRingY += relativeDistanceDeltaY * 0.16;
+      
+      interpolationAuraRing.style.transform = `translate(${structuralRingX}px, ${structuralRingY}px)`;
+      requestAnimationFrame(interpolationCursorFrameLoop);
+    }
+    interpolationCursorFrameLoop();
+
+    function attachDynamicHoverListeners() {
+      document.querySelectorAll('.dom-node-hover, .matrix-tab-trigger, .switch-trigger, .control-deck-btn, input, button, a').forEach(node => {
+        node.addEventListener('mouseenter', () => document.body.classList.add('hovering-node'));
+        node.addEventListener('mouseleave', () => document.body.classList.remove('hovering-node'));
+      });
+    }
+    attachDynamicHoverListeners();
+
+    // 3D Perspective Translation Tilt Controller Matrix
+    document.querySelectorAll('.deck-panel').forEach(panelNode => {
+      panelNode.addEventListener('mousemove', (panelEvent) => {
+        const boundingBoxRect = panelNode.getBoundingClientRect();
+        const cursorRelativeX = panelEvent.clientX - boundingBoxRect.left;
+        const cursorRelativeY = panelEvent.clientY - boundingBoxRect.top;
+        const halfBoxWidth = boundingBoxRect.width / 2;
+        const halfBoxHeight = boundingBoxRect.height / 2;
+        
+        const computingTiltDegreesX = ((cursorRelativeY - halfBoxHeight) / halfBoxHeight) * -2; // Max 2 degrees rotation
+        const computingTiltDegreesY = ((cursorRelativeX - halfBoxWidth) / halfBoxWidth) * 2;
+        
+        panelNode.style.transform = `perspective(1000px) rotateX(${computingTiltDegreesX}deg) rotateY(${computingTiltDegreesY}deg) scale3d(1.005, 1.005, 1.005)`;
+      });
+
+      panelNode.addEventListener('mouseleave', () => {
+        panelNode.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)`;
+      });
+    });
+
+    // Cryptographic Character Scrambler Script Layer
+    class CharacterScrambler {
+      constructor(elementNode) {
+        this.elementNode = elementNode;
+        this.decoderCharactersPool = '!<>-_\\/[]{}—=+*^?#________';
+        this.executeFrameStepUpdate = this.executeFrameStepUpdate.bind(this);
+      }
+      initializeDecodingStringSequence(finalTargetString) {
+        const startingTextValue = this.elementNode.innerText;
+        const uniformProcessingLength = Math.max(startingTextValue.length, finalTargetString.length);
+        this.processingStateQueue = [];
+        
+        for (let idx = 0; idx < uniformProcessingLength; idx++) {
+          const charFrom = startingTextValue[idx] || '';
+          const charTo = finalTargetString[idx] || '';
+          const processingFrameStart = Math.floor(Math.random() * 25);
+          const processingFrameEnd = processingFrameStart + Math.floor(Math.random() * 25);
+          this.processingStateQueue.push({ charFrom, charTo, processingFrameStart, processingFrameEnd });
+        }
+        cancelAnimationFrame(this.frameRequestNode);
+        this.activeSequenceFrame = 0;
+        this.executeFrameStepUpdate();
+      }
+      executeFrameStepUpdate() {
+        let compiledOutputMarkup = '';
+        let countCharactersCompleted = 0;
+        
+        for (let idx = 0; idx < this.processingStateQueue.length; idx++) {
+          let { charFrom, charTo, processingFrameStart, processingFrameEnd, transitionalCharacter } = this.processingStateQueue[idx];
+          if (this.activeSequenceFrame >= processingFrameEnd) {
+            countCharactersCompleted++;
+            compiledOutputMarkup += charTo;
+          } else if (this.activeSequenceFrame >= processingFrameStart) {
+            if (!transitionalCharacter || Math.random() < 0.3) {
+              transitionalCharacter = this.decoderCharactersPool[Math.floor(Math.random() * this.decoderCharactersPool.length)];
+              this.processingStateQueue[idx].transitionalCharacter = transitionalCharacter;
+            }
+            compiledOutputMarkup += `<span style="color:var(--accent);" class="scramble-span">${transitionalCharacter}</span>`;
+          } else {
+            compiledOutputMarkup += charFrom;
+          }
+        }
+        this.elementNode.innerHTML = compiledOutputMarkup;
+        if (countCharactersCompleted !== this.processingStateQueue.length) {
+          this.frameRequestNode = requestAnimationFrame(this.executeFrameStepUpdate);
+          this.activeSequenceFrame++;
+        }
+      }
+    }
+
+    const scrambleIntersectionObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const executionScramblerInstance = new CharacterScrambler(entry.target);
+          executionScramblerInstance.initializeDecodingStringSequence(entry.target.getAttribute('data-text'));
+          scrambleIntersectionObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.4 });
+    document.querySelectorAll('.scramble-init').forEach(target => scrambleIntersectionObserver.observe(target));
+
+    // =========================================================================
+    // SYSTEM LIFECYCLE DEPLOYMENT SEQUENCE
+    // =========================================================================
+    function completeDeckInterfaceDeployment() {
+      if (appScreen.classList.contains('active')) return;
+      introScreen.style.opacity = '0';
+      introScreen.style.transform = 'scale(1.01)';
+      
+      setTimeout(() => {
+        introScreen.style.display = 'none';
+        appScreen.classList.add('active');
+        switchSystemThemePalette(localStorage.getItem('lofty_theme') || 'midnight');
+        deckShellInput.focus();
+        
+        emitShellRowOutput(`<span class="accent">// INITIALIZATION CONTEXT: Private Lofty Deck Matrix environment deployment successful.</span>`);
+        emitShellRowOutput(`Sovereign Session token <span class="terminal-prompt-label">${escapeHtmlEntities(SYSTEM_STATE.runtimeSessionToken)}</span> established.`);
+        emitShellRowOutput(`To trace operations directory specifications, run <span class="terminal-prompt-label">lofty:help</span> inside the command prompt.`);
+        
+        generateDynamicPipelineCard({ title: 'SUBSTRATE INGEST OK', originScope: 'READY', gridDataRows: [['token', SYSTEM_STATE.runtimeSessionToken], ['inference_base', RUNTIME_ENV.modelProfile], ['sandbox_mode', 'isolated_localhost']] });
+      }, 500);
+    }
+
+    function bootstrapApplicationLifecycle() {
+      try { introVideo.playbackRate = 1.6; } catch (_) {}
+      introVideo.addEventListener('ended', completeDeckInterfaceDeployment, { once: true });
+      introVideo.addEventListener('error', completeDeckInterfaceDeployment, { once: true });
+      
+      // Safety automated fallback delay trigger condition rule 
+      setTimeout(() => { if (!appScreen.classList.contains('active')) completeDeckInterfaceDeployment(); }, 2500);
+      
+      introScreen.addEventListener('click', () => {
+        try { introVideo.pause(); } catch (_) {}
+        completeDeckInterfaceDeployment();
+      }, { once: true });
+      
+      document.addEventListener('keydown', (e) => {
+        if (!appScreen.classList.contains('active') && e.key !== 'F5') {
+          try { introVideo.pause(); } catch (_) {}
+          completeDeckInterfaceDeployment();
+        }
+      }, { once: true });
+
+      resizeMicroAnalyticsCanvas();
+      runMicroAnalyticsRenderLoop();
+      window.addEventListener('resize', resizeMicroAnalyticsCanvas);
+    }
+
+    bootstrapApplicationLifecycle();
+  </script>
+</body>
+</html>

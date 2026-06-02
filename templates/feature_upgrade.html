@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LOFTY | Capabilities & Substrate</title>
+  <meta name="description" content="LOFTY Capabilities: Compound reasoning on a domain-specialized compositional fabric." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    /* =========================================
+       CORE VARIABLES & RESET (YELLOW THEME)
+       ========================================= */
+    :root {
+      --bg: #030303;
+      --bg-surface: #0a0a0a;
+      --bg-glass: rgba(10, 10, 10, 0.7);
+      --text: #f0f0f0;
+      --muted: rgba(240, 240, 240, 0.55);
+      --line: rgba(255, 255, 255, 0.08);
+      
+      /* The Electric Yellow Accent */
+      --accent: #D4FF00; 
+      --accent-glow: rgba(212, 255, 0, 0.2);
+      --accent-dim: rgba(212, 255, 0, 0.05);
+      
+      --shadow: 0 30px 80px rgba(0, 0, 0, 0.8);
+      --radius-xl: 24px;
+      --radius-lg: 16px;
+      --transition: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; cursor: none !important; }
+    html { scroll-behavior: smooth; background-color: var(--bg); }
+    
+    body {
+      font-family: 'Space Grotesk', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      overflow-x: hidden;
+      line-height: 1.6;
+    }
+
+    a { color: inherit; text-decoration: none; }
+    ul { list-style: none; }
+    button { font: inherit; outline: none; border: none; cursor: none; }
+
+    /* =========================================
+       CUSTOM MAGNETIC CURSOR
+       ========================================= */
+    #cursor-dot {
+      position: fixed; top: 0; left: 0; width: 5px; height: 5px;
+      background: var(--accent); border-radius: 50%;
+      transform: translate(-50%, -50%); z-index: 10000; pointer-events: none;
+      box-shadow: 0 0 12px var(--accent);
+    }
+    #cursor-ring {
+      position: fixed; top: 0; left: 0; width: 36px; height: 36px;
+      border: 1px solid rgba(212, 255, 0, 0.5); border-radius: 50%;
+      transform: translate(-50%, -50%); z-index: 9999; pointer-events: none;
+      transition: width 0.3s var(--transition), height 0.3s var(--transition), background 0.3s ease;
+    }
+    .hovering #cursor-ring {
+      width: 70px; height: 70px; background: var(--accent-dim); border-color: var(--accent); backdrop-filter: blur(1px);
+    }
+
+    /* =========================================
+       BACKGROUND FX (CRT NOISE + TECHNICAL GRID)
+       ========================================= */
+    .bg-noise {
+      position: fixed; inset: 0; z-index: -1; opacity: 0.05; pointer-events: none;
+      background-image: url('data:image/svg+xml,%3Csvg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"%3E%3Cfilter id="noise"%3E%3CfeTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="3" stitchTiles="stitch"/%3E%3C/filter%3E%3Crect width="100%25" height="100%25" filter="url(%23noise)"/%3E%3C/svg%3E');
+    }
+    .bg-grid {
+      position: fixed; inset: 0; z-index: -2; pointer-events: none;
+      background-image: 
+        linear-gradient(to right, var(--line) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--line) 1px, transparent 1px);
+      background-size: 80px 80px;
+      mask-image: radial-gradient(ellipse at top, black 10%, transparent 70%);
+      -webkit-mask-image: radial-gradient(ellipse at top, black 10%, transparent 70%);
+    }
+
+    /* =========================================
+       LAYOUT SHELL
+       ========================================= */
+    .shell { width: min(1400px, calc(100% - 48px)); margin: 0 auto; }
+    .reveal { opacity: 0; transform: translateY(30px); transition: all 1s var(--transition); }
+    .reveal.active { opacity: 1; transform: translateY(0); }
+
+    /* =========================================
+       NAVIGATION (MINIMAL, FEATURE-FOCUSED)
+       ========================================= */
+    .nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      padding: 16px 0; border-bottom: 1px solid var(--line);
+      background: var(--bg-glass); backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; }
+    
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand-mark {
+      width: 12px; height: 12px; background: var(--accent);
+      box-shadow: 0 0 15px var(--accent); border-radius: 2px;
+      animation: blink 2s infinite;
+    }
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+    .brand-text h1 { font-family: 'JetBrains Mono', monospace; font-size: 1rem; font-weight: 700; letter-spacing: 0.1em; }
+    
+    .nav-links { display: flex; gap: 24px; }
+    .nav-links a {
+      color: var(--muted); font-size: 0.85rem; font-weight: 500; 
+      letter-spacing: 0.05em; transition: color 0.3s ease; text-transform: uppercase;
+    }
+    .nav-links a:hover, .nav-links a.active { color: var(--accent); }
+
+    .nav-back {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--bg);
+      background: var(--text); padding: 8px 16px; border-radius: 4px;
+      text-transform: uppercase; font-weight: 700; transition: all 0.3s ease;
+    }
+    .nav-back:hover { background: var(--accent); box-shadow: 0 0 20px var(--accent-glow); }
+
+    /* =========================================
+       HERO HEADER (RAZORPAY/AWWWARDS STYLE)
+       ========================================= */
+    .hero { padding: 180px 0 100px; text-align: center; border-bottom: 1px solid var(--line); position: relative; }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px;
+      background: var(--accent-dim); border: 1px solid rgba(212, 255, 0, 0.2);
+      color: var(--accent); font-family: 'JetBrains Mono', monospace; font-size: 0.75rem;
+      text-transform: uppercase; letter-spacing: 0.1em; border-radius: 4px; margin-bottom: 30px;
+    }
+    .hero-title {
+      font-size: clamp(3rem, 7vw, 7rem); font-weight: 700; line-height: 0.95;
+      letter-spacing: -0.04em; text-transform: uppercase; margin-bottom: 24px;
+    }
+    .hero-title span { color: var(--accent); font-style: italic; }
+    .hero-subtitle {
+      font-size: clamp(1rem, 2vw, 1.25rem); color: var(--muted); max-width: 600px;
+      margin: 0 auto; line-height: 1.6; font-weight: 400;
+    }
+
+    /* =========================================
+       MAIN LAYOUT: STICKY LEFT + SCROLL RIGHT
+       ========================================= */
+    .page-wrapper { padding: 100px 0; }
+    .layout-grid { display: grid; grid-template-columns: 350px 1fr; gap: 80px; align-items: start; }
+
+    /* LEFT: STICKY TECHNICAL SPEC PANEL */
+    .sticky-panel { position: sticky; top: 120px; }
+    
+    .spec-header { font-family: 'JetBrains Mono'; font-size: 0.9rem; color: var(--accent); border-bottom: 1px solid var(--line); padding-bottom: 16px; margin-bottom: 24px; text-transform: uppercase;}
+    
+    .spec-list { display: flex; flex-direction: column; gap: 20px; }
+    .spec-item { display: flex; justify-content: space-between; align-items: center; font-family: 'JetBrains Mono'; font-size: 0.85rem;}
+    .spec-label { color: var(--muted); }
+    .spec-value { color: var(--text); font-weight: 700; }
+    
+    .system-status {
+      margin-top: 40px; padding: 20px; background: var(--bg-surface); border: 1px solid var(--line); border-radius: 8px;
+    }
+    .status-indicator { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; font-family: 'JetBrains Mono'; font-size: 0.8rem; color: var(--accent); }
+    .status-dot { width: 8px; height: 8px; background: var(--accent); border-radius: 50%; animation: blink 1.5s infinite; }
+    
+    .status-bar-bg { width: 100%; height: 4px; background: var(--line); border-radius: 2px; overflow: hidden;}
+    .status-bar-fill { width: 92%; height: 100%; background: var(--accent); }
+
+    /* RIGHT: FEATURE DEEP DIVES (PURE CSS VISUALIZERS) */
+    .feature-stack { display: flex; flex-direction: column; gap: 60px; }
+    
+    .feature-card {
+      background: var(--bg-surface); border: 1px solid var(--line); border-radius: var(--radius-xl);
+      padding: 40px; position: relative; overflow: hidden; transition: border-color 0.4s ease;
+    }
+    .feature-card:hover { border-color: rgba(212, 255, 0, 0.3); }
+    
+    .feature-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; font-family: 'JetBrains Mono'; }
+    .feature-id { color: var(--accent); font-size: 0.85rem; font-weight: 700; }
+    .feature-tag { padding: 4px 10px; border: 1px solid var(--line); border-radius: 4px; font-size: 0.7rem; color: var(--muted); text-transform: uppercase; }
+
+    .feature-content h3 { font-size: 2.5rem; font-weight: 600; margin-bottom: 16px; letter-spacing: -0.02em; }
+    .feature-content p { color: var(--muted); font-size: 1.1rem; max-width: 600px; margin-bottom: 30px; }
+
+    /* Visualizer 1: MindHYVE Inspired Substrate / Neural Nodes */
+    .visualizer-nodes {
+      height: 240px; background: #000; border: 1px solid var(--line); border-radius: var(--radius-lg);
+      position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; gap: 30px;
+    }
+    .node {
+      width: 60px; height: 60px; border: 2px solid var(--line); border-radius: 50%;
+      display: grid; place-items: center; position: relative; background: var(--bg-surface);
+      z-index: 2; transition: all 0.3s ease;
+    }
+    .node.core { border-color: var(--accent); box-shadow: 0 0 30px var(--accent-glow); }
+    .node-line {
+      position: absolute; height: 2px; background: linear-gradient(90deg, var(--line), var(--accent), var(--line));
+      width: 150px; z-index: 1; animation: flow 3s infinite linear;
+    }
+    @keyframes flow { 0% { background-position: -150px 0; } 100% { background-position: 150px 0; } }
+
+    /* Visualizer 2: DV8 Inspired Terminal/Orchestration */
+    .visualizer-terminal {
+      height: 240px; background: #050505; border: 1px solid var(--line); border-radius: var(--radius-lg);
+      padding: 20px; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: var(--muted);
+      overflow: hidden; position: relative;
+    }
+    .terminal-header { display: flex; gap: 8px; margin-bottom: 16px; }
+    .term-dot { width: 10px; height: 10px; border-radius: 50%; background: #333; }
+    .term-line { margin-bottom: 8px; display: flex; gap: 10px; }
+    .term-time { color: #666; }
+    .term-cmd { color: var(--accent); }
+    .term-out { color: #aaa; }
+    .typing { border-right: 2px solid var(--accent); animation: cursor 1s step-end infinite; white-space: nowrap; overflow: hidden; }
+    @keyframes cursor { 50% { border-color: transparent; } }
+
+    /* Visualizer 3: Voxr AI Inspired Voice Wave */
+    .visualizer-wave {
+      height: 240px; background: #000; border: 1px solid var(--line); border-radius: var(--radius-lg);
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+    }
+    .bar { width: 6px; background: var(--line); border-radius: 4px; transition: height 0.1s ease; }
+    .bar.active { background: var(--accent); box-shadow: 0 0 15px var(--accent-glow); }
+
+    /* =========================================
+       BENTO GRID (EPIMINDS / CAPABILITIES)
+       ========================================= */
+    .bento-section { padding: 100px 0; border-top: 1px solid var(--line); }
+    .bento-header { margin-bottom: 60px; }
+    .bento-header h2 { font-size: 3rem; text-transform: uppercase; font-weight: 700; margin-bottom: 16px; }
+    
+    .bento-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    
+    .bento-card {
+      background: var(--bg-surface); border: 1px solid var(--line); border-radius: var(--radius-lg);
+      padding: 30px; display: flex; flex-direction: column; justify-content: space-between;
+      min-height: 250px; transition: all 0.3s ease;
+    }
+    .bento-card:hover { background: rgba(212, 255, 0, 0.02); border-color: var(--accent-dim); transform: translateY(-5px); }
+    
+    .span-2 { grid-column: span 2; }
+    
+    .bento-icon { font-family: 'JetBrains Mono'; font-size: 1.5rem; color: var(--accent); margin-bottom: 20px; }
+    .bento-title { font-size: 1.5rem; font-weight: 600; margin-bottom: 12px; }
+    .bento-text { color: var(--muted); font-size: 0.95rem; line-height: 1.6; }
+
+    /* =========================================
+       MARQUEE TICKER
+       ========================================= */
+    .marquee-wrap { border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 20px 0; overflow: hidden; background: #050505; }
+    .marquee { display: flex; animation: scrollMarquee 30s linear infinite; }
+    .marquee span {
+      font-family: 'JetBrains Mono', monospace; font-size: 1.2rem; color: var(--text);
+      text-transform: uppercase; white-space: nowrap; margin-right: 4rem; display: flex; align-items: center; gap: 4rem;
+    }
+    .marquee span::after { content: "＊"; color: var(--accent); }
+    @keyframes scrollMarquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+
+    /* =========================================
+       FOOTER
+       ========================================= */
+    .footer { padding: 100px 0 40px; text-align: center; border-top: 1px solid var(--line); }
+    .footer-huge {
+      font-size: clamp(4rem, 12vw, 15rem); font-weight: 700; color: rgba(255,255,255,0.02);
+      letter-spacing: -0.05em; line-height: 0.8; margin-bottom: 60px; font-family: 'Space Grotesk', sans-serif;
+    }
+    .footer-meta { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--line); padding-top: 24px; font-family: 'JetBrains Mono'; font-size: 0.8rem; color: var(--muted); text-transform: uppercase; }
+    .footer-meta a { color: var(--text); }
+    .footer-meta a:hover { color: var(--accent); }
+
+    /* =========================================
+       RESPONSIVE
+       ========================================= */
+    @media (max-width: 1024px) {
+      .layout-grid { grid-template-columns: 1fr; }
+      .sticky-panel { position: relative; top: 0; margin-bottom: 40px; }
+      .bento-grid { grid-template-columns: 1fr; }
+      .span-2 { grid-column: span 1; }
+    }
+    @media (max-width: 768px) {
+      .nav-links { display: none; }
+      .feature-card { padding: 24px; }
+      .visualizer-nodes, .visualizer-terminal, .visualizer-wave { height: 180px; }
+      .hero-title { font-size: 2.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="bg-noise"></div>
+  <div class="bg-grid"></div>
+
+  <div id="cursor-dot"></div>
+  <div id="cursor-ring"></div>
+
+  <nav class="nav">
+    <div class="shell nav-inner">
+      <a class="brand magnetic" href="index.html">
+        <div class="brand-mark"></div>
+        <div class="brand-text"><h1>LOFTY.SYS</h1></div>
+      </a>
+      <div class="nav-links">
+        <a href="#substrate" class="magnetic active">Substrate</a>
+        <a href="#orchestration" class="magnetic">Orchestration</a>
+        <a href="#voice" class="magnetic">Voice Logic</a>
+      </div>
+      <a href="index.html" class="nav-back magnetic">← Index</a>
+    </div>
+  </nav>
+
+  <header class="hero shell">
+    <div class="hero-badge reveal">System Architecture v2.0</div>
+    <h1 class="hero-title reveal">The Age of <br><span>AI-Native</span> Orchestration</h1>
+    <p class="hero-subtitle reveal">
+      Moving beyond monolithic models. LOFTY utilizes a domain-specialized compositional fabric designed for high-latency tolerance, agentic delegation, and industrial-grade reasoning.
+    </p>
+  </header>
+
+  <main class="page-wrapper shell">
+    <div class="layout-grid">
+      
+      <aside class="sticky-panel reveal">
+        <h3 class="spec-header">Core Specifications</h3>
+        <div class="spec-list">
+          <div class="spec-item"><span class="spec-label">Substrate Type</span><span class="spec-value">Compound / Graph</span></div>
+          <div class="spec-item"><span class="spec-label">Agent Delegation</span><span class="spec-value">Autonomous</span></div>
+          <div class="spec-item"><span class="spec-label">Voice Pipeline</span><span class="spec-value">Full-Duplex</span></div>
+          <div class="spec-item"><span class="spec-label">Memory Architecture</span><span class="spec-value">Vector RAG</span></div>
+          <div class="spec-item"><span class="spec-label">Inference Latency</span><span class="spec-value">< 120ms</span></div>
+        </div>
+
+        <div class="system-status">
+          <div class="status-indicator">
+            <div class="status-dot"></div>
+            System Online & Ready
+          </div>
+          <div class="spec-label" style="font-size: 0.75rem; margin-bottom: 8px; font-family: 'JetBrains Mono';">Substrate Load</div>
+          <div class="status-bar-bg"><div class="status-bar-fill"></div></div>
+        </div>
+      </aside>
+
+      <section class="feature-stack">
+        
+        <article class="feature-card reveal interactive-tilt" id="substrate">
+          <div class="feature-meta">
+            <span class="feature-id">F.01 // SUBSTRATE</span>
+            <span class="feature-tag">Compositional Fabric</span>
+          </div>
+          <div class="feature-content">
+            <h3>Compound Reasoning</h3>
+            <p>Built on an epistemological substrate rather than a single monolithic model. User intents are parsed and routed through multiple domain-specific expert nodes, synthesizing a mathematically grounded response.</p>
+          </div>
+          <div class="visualizer-nodes">
+            <div class="node-line"></div>
+            <div class="node">I/O</div>
+            <div class="node core" style="box-shadow: 0 0 20px rgba(212,255,0,0.4);">RTR</div>
+            <div class="node">SYN</div>
+          </div>
+        </article>
+
+        <article class="feature-card reveal interactive-tilt" id="orchestration">
+          <div class="feature-meta">
+            <span class="feature-id">F.02 // ORCHESTRATION</span>
+            <span class="feature-tag">Agentic AI</span>
+          </div>
+          <div class="feature-content">
+            <h3>Industrial Delegation</h3>
+            <p>LOFTY does not just generate text; it orchestrates actions. It writes, executes, and self-heals code within a secure Docker sandbox, bridging the gap between digital reasoning and real-world industrial tasks.</p>
+          </div>
+          <div class="visualizer-terminal">
+            <div class="terminal-header">
+              <div class="term-dot" style="background:#ff5f56;"></div>
+              <div class="term-dot" style="background:#ffbd2e;"></div>
+              <div class="term-dot" style="background:#27c93f;"></div>
+            </div>
+            <div class="term-line"><span class="term-time">[11:04:12]</span> <span class="term-cmd">lofty sys.delegate --task="scrape_api"</span></div>
+            <div class="term-line"><span class="term-time">[11:04:13]</span> <span class="term-out">> Spawning micro-agent (ID: x48)...</span></div>
+            <div class="term-line"><span class="term-time">[11:04:14]</span> <span class="term-out">> Executing headless chromium... SUCCESS</span></div>
+            <div class="term-line"><span class="term-time">[11:04:15]</span> <span class="term-cmd typing">Data compiled to vector DB. Waiting_</span></div>
+          </div>
+        </article>
+
+        <article class="feature-card reveal interactive-tilt" id="voice">
+          <div class="feature-meta">
+            <span class="feature-id">F.03 // PIPELINE</span>
+            <span class="feature-tag">Low-Latency Audio</span>
+          </div>
+          <div class="feature-content">
+            <h3>Bi-directional Voice</h3>
+            <p>Achieving outbound and inbound vocal synthesis that qualifies as human-equivalent. The system handles interruptions natively, processing sentiment and speech concurrently with sub-120ms latency.</p>
+          </div>
+          <div class="visualizer-wave" id="audio-wave">
+            </div>
+        </article>
+
+      </section>
+    </div>
+  </main>
+
+  <div class="marquee-wrap">
+    <div class="marquee">
+      <span>Agentic Execution</span>
+      <span>Compound Reasoning</span>
+      <span>Self-Healing Architecture</span>
+      <span>Vector Embeddings</span>
+      <span>Bi-Directional Speech</span>
+      <span>Agentic Execution</span>
+      <span>Compound Reasoning</span>
+      <span>Self-Healing Architecture</span>
+      <span>Vector Embeddings</span>
+      <span>Bi-Directional Speech</span>
+    </div>
+  </div>
+
+  <section class="bento-section shell reveal">
+    <div class="bento-header">
+      <h2>Architectural <br>Capabilities</h2>
+    </div>
+    
+    <div class="bento-grid">
+      <div class="bento-card span-2 interactive-tilt">
+        <div class="bento-icon">[ API ]</div>
+        <h4 class="bento-title">Universal API Aggregation</h4>
+        <p class="bento-text">LOFTY natively reads OpenAPI specs and dynamically constructs its own tool-use wrappers. Point it at any REST or GraphQL endpoint, and it autonomously learns how to interact with the external service without hardcoded logic.</p>
+      </div>
+      
+      <div class="bento-card interactive-tilt">
+        <div class="bento-icon">&lt; &gt;</div>
+        <h4 class="bento-title">Edge Deployment</h4>
+        <p class="bento-text">Compile the orchestration engine into a lightweight binary. Run entirely offline on local hardware for maximum privacy and zero-trust environments.</p>
+      </div>
+      
+      <div class="bento-card interactive-tilt">
+        <div class="bento-icon">{ }</div>
+        <h4 class="bento-title">Infinite Memory Graph</h4>
+        <p class="bento-text">Utilizing a combination of localized vector databases and graph relationship mapping, LOFTY recalls context from years ago with perfect deterministic accuracy.</p>
+      </div>
+      
+      <div class="bento-card span-2 interactive-tilt" style="background: var(--accent); color: #000; border-color: var(--accent);">
+        <div class="bento-icon" style="color: #000;">//</div>
+        <h4 class="bento-title">Enterprise Security SLA</h4>
+        <p class="bento-text" style="color: rgba(0,0,0,0.7);">All agentic code execution happens inside ephemeral, isolated Docker containers. No network access is granted unless explicitly whitelisted in the substrate configuration.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="shell">
+      <div class="footer-huge">LOFTY</div>
+      <div class="footer-meta">
+        <div>© 2026 LOFTY Systems. Open Substrate.</div>
+        <div>
+          <a href="#" class="magnetic" style="margin-right: 20px;">GitHub</a>
+          <a href="#" class="magnetic">Documentation</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // 1. Magnetic Cursor Physics
+    const dot = document.getElementById('cursor-dot');
+    const ring = document.getElementById('cursor-ring');
+    let mouseX = window.innerWidth / 2;
+    let mouseY = window.innerHeight / 2;
+    let ringX = mouseX;
+    let ringY = mouseY;
+
+    window.addEventListener('mousemove', (e) => {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+      dot.style.transform = `translate(${mouseX}px, ${mouseY}px)`;
+    });
+
+    function animateRing() {
+      ringX += (mouseX - ringX) * 0.15; // Easing factor
+      ringY += (mouseY - ringY) * 0.15;
+      ring.style.transform = `translate(${ringX}px, ${ringY}px)`;
+      requestAnimationFrame(animateRing);
+    }
+    animateRing();
+
+    // 2. Magnetic Hover Effect for Links/Buttons
+    document.querySelectorAll('.magnetic').forEach(el => {
+      el.addEventListener('mouseenter', () => document.body.classList.add('hovering'));
+      el.addEventListener('mouseleave', () => {
+        document.body.classList.remove('hovering');
+        el.style.transform = `translate(0px, 0px)`;
+      });
+      
+      el.addEventListener('mousemove', (e) => {
+        const rect = el.getBoundingClientRect();
+        const x = (e.clientX - rect.left - rect.width / 2) * 0.3;
+        const y = (e.clientY - rect.top - rect.height / 2) * 0.3;
+        el.style.transform = `translate(${x}px, ${y}px)`;
+      });
+    });
+
+    // 3. 3D Tilt Physics for Feature Cards (Awwwards Style)
+    document.querySelectorAll('.interactive-tilt').forEach(el => {
+      el.addEventListener('mousemove', (e) => {
+        const rect = el.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+        
+        // Gentle tilt logic
+        const rotateX = ((y - centerY) / centerY) * -3; 
+        const rotateY = ((x - centerX) / centerX) * 3;
+        
+        el.style.transform = `perspective(1200px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.01, 1.01, 1.01)`;
+      });
+
+      el.addEventListener('mouseleave', () => {
+        el.style.transform = `perspective(1200px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)`;
+      });
+    });
+
+    // 4. Scroll Reveal Intersection Observer
+    const revealElements = document.querySelectorAll('.reveal');
+    const revealObserver = new IntersectionObserver((entries, observer) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('active');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1, rootMargin: "0px 0px -50px 0px" });
+
+    revealElements.forEach(el => revealObserver.observe(el));
+
+    // 5. Generate Dynamic Audio Wave for Visualizer 3
+    const waveContainer = document.getElementById('audio-wave');
+    const numBars = 40; // Number of EQ bars
+    
+    // Create bars
+    for(let i = 0; i < numBars; i++) {
+      const bar = document.createElement('div');
+      bar.classList.add('bar');
+      bar.style.height = '10px';
+      waveContainer.appendChild(bar);
+    }
+
+    // Animate bars randomly to simulate voice
+    const bars = document.querySelectorAll('.bar');
+    setInterval(() => {
+      bars.forEach(bar => {
+        const height = Math.random() * 100 + 10; // Random height between 10px and 110px
+        bar.style.height = `${height}px`;
+        if(height > 80) {
+          bar.classList.add('active');
+        } else {
+          bar.classList.remove('active');
+        }
+      });
+    }, 150); // Update speed
+  </script>
+</body>
+</html>

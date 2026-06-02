@@ -15,7 +15,7 @@ class APIAGENT:
         self.weather_key = os.getenv("WEATHER_KEY")
         self.currency_key = os.getenv("CURRENCY_CONVERSION_KEY")
         self.news_key = os.getenv("NEWS_KEY")
-
+        self.nasa_key = os.getenv("NASA_KEY")
     @tool
     def get_conversion_factor(self,base_currency:str,target_currency:str) -> float:
         """Get the conversion factor between two currencies."""
@@ -101,4 +101,56 @@ class APIAGENT:
             return "Definition structure parsing failed."
         
 
-            
+    @tool
+    def nasa_result(query:str) -> dict:
+        """Searches NASA's image and video library for media related to a specific query term.
+        Args:
+            query: A search term related to space, astronomy, or NASA missions (e.g., 'Mars rover', 'Hubble telescope').
+        """
+        url = f"https://images-api.nasa.gov/search?q={query}"  
+        response = requests.get(url)
+        if response.status_code == 200:
+            items = response.json().get('collection',{}).get('items',[])
+            #clean and parse top 3 result 
+            simplified_result = []
+            for item in items[:3]:
+                try:
+                    title = item['data'][0]['title']
+                    description = item['data'][0]['description']
+                    media_type = item['data'][0]['media_type']
+                    url_link = item['links'][0]['href']
+                    simplified_result.append({
+                        "title": title,
+                        "description": description,
+                        "media_type": media_type,
+                        "url": url_link
+                    })  
+                except (KeyError, IndexError):
+                    continue
+            return simplified_result
+        else:
+            return {"error": "NASA API request failed."}
+    @tool
+    def nasa_mars_weather() -> dict:
+        """Fetches the latest weather data from NASA's InSight Mars lander."""
+        url = f"https://api.nasa.gov/insight_weather/?api_key={self.nasa_key}&feedtype=json&ver=1.0"
+        response = requests.get(url)
+        if response.status_code == 200:
+            data = response.json()
+            sol_keys = data.get("sol_keys", [])
+            if sol_keys:
+                latest_sol = sol_keys[-1]
+                weather_info = data[latest_sol]
+                return {
+                    "sol": latest_sol,
+                    "temperature": weather_info.get("AT", {}).get("av"),
+                    "wind_speed": weather_info.get("HWS", {}).get("av"),
+                    "pressure": weather_info.get("PRE", {}).get("av")
+                }
+            else:
+                return {"error": "No sol data available."}
+        else:
+            return {"error": "NASA Mars weather API request failed."}
+    @tool
+    def 
+    

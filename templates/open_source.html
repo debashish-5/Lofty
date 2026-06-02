@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lofty OS™ | The Agentic Substrate</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;600&family=Inter:wght@100;300;500;800;900&display=swap" rel="stylesheet">
+
+    <style>
+        /* --- CORE SYSTEM VARIABLES --- */
+        :root {
+            --bg-base: #000000;
+            --bg-surface: #0a0a0a;
+            --bg-surface-elevated: #111111;
+            --text-primary: #ffffff;
+            --text-secondary: #888888;
+            --accent: #eaff00;
+            --accent-dim: rgba(234, 255, 0, 0.15);
+            --border-subtle: rgba(255, 255, 255, 0.08);
+            --glass-bg: rgba(10, 10, 10, 0.6);
+            --transition-smooth: cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* --- RESET & BASE --- */
+        * { margin: 0; padding: 0; box-sizing: border-box; cursor: none; /* Hide default cursor */ }
+        
+        body, html {
+            background-color: var(--bg-base);
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+        }
+
+        /* --- NOISE TEXTURE (PREMIUM FEEL) --- */
+        .noise {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            pointer-events: none; z-index: 9999; opacity: 0.03;
+            background-image: url('data:image/svg+xml,%3Csvg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"%3E%3Cfilter id="noiseFilter"%3E%3CfeTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/%3E%3C/filter%3E%3Crect width="100%25" height="100%25" filter="url(%23noiseFilter)"/%3E%3C/svg%3E');
+        }
+
+        /* --- CUSTOM CURSOR --- */
+        .cursor-dot, .cursor-outline {
+            position: fixed; top: 0; left: 0; transform: translate(-50%, -50%);
+            border-radius: 50%; z-index: 10000; pointer-events: none;
+        }
+        .cursor-dot { width: 6px; height: 6px; background-color: var(--accent); }
+        .cursor-outline {
+            width: 40px; height: 40px; border: 1px solid var(--accent-dim);
+            transition: width 0.2s, height 0.2s, background-color 0.2s;
+        }
+        .cursor-outline.hover-state {
+            width: 60px; height: 60px; background-color: var(--accent-dim); border-color: var(--accent);
+        }
+
+        /* --- CANVAS BACKGROUND --- */
+        #network-canvas { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 0; opacity: 0.4; }
+
+        /* --- UTILITIES --- */
+        .relative { position: relative; z-index: 10; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 0 5%; }
+        
+        /* --- SCROLL REVEAL ANIMATIONS --- */
+        .reveal { opacity: 0; transform: translateY(40px); transition: all 1s var(--transition-smooth); }
+        .reveal.active { opacity: 1; transform: translateY(0); }
+        
+        /* --- NAVIGATION --- */
+        nav {
+            position: fixed; top: 0; width: 100%; z-index: 100;
+            background: var(--glass-bg); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border-subtle);
+            padding: 1.5rem 0;
+        }
+        .nav-inner { display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-size: 1.5rem; font-weight: 900; letter-spacing: -1px; text-transform: uppercase; }
+        .logo span { color: var(--accent); }
+        .nav-links a {
+            color: var(--text-secondary); text-decoration: none; margin-left: 2.5rem;
+            font-size: 0.85rem; font-weight: 500; text-transform: uppercase; letter-spacing: 1px; transition: color 0.3s;
+        }
+        .nav-links a:hover { color: var(--text-primary); }
+
+        /* --- HERO SECTION --- */
+        .hero { min-height: 100vh; display: flex; align-items: center; padding-top: 5rem; }
+        .hero-content { max-width: 1000px; }
+        .badge {
+            display: inline-block; padding: 0.4rem 1rem; border: 1px solid var(--border-subtle);
+            border-radius: 100px; font-family: 'Fira Code', monospace; font-size: 0.75rem;
+            color: var(--accent); margin-bottom: 2rem; background: var(--bg-surface);
+        }
+        .hero h1 { font-size: clamp(4rem, 10vw, 8rem); font-weight: 900; line-height: 0.9; letter-spacing: -3px; margin-bottom: 2rem; }
+        .hero h1 span { color: transparent; -webkit-text-stroke: 1px var(--text-secondary); }
+        .hero p { font-size: clamp(1.2rem, 2vw, 1.5rem); color: var(--text-secondary); max-width: 600px; font-weight: 300; margin-bottom: 3rem; }
+        
+        .btn-group { display: flex; gap: 1rem; }
+        .btn {
+            padding: 1.2rem 2.5rem; font-size: 0.9rem; font-weight: 600; text-transform: uppercase;
+            letter-spacing: 1px; text-decoration: none; transition: all 0.3s var(--transition-smooth); border-radius: 0;
+        }
+        .btn-primary { background: var(--accent); color: var(--bg-base); border: 1px solid var(--accent); }
+        .btn-primary:hover { box-shadow: 0 0 30px var(--accent-dim); transform: translateY(-2px); }
+        .btn-outline { background: transparent; color: var(--text-primary); border: 1px solid var(--border-subtle); }
+        .btn-outline:hover { border-color: var(--text-primary); background: rgba(255,255,255,0.05); }
+
+        /* --- MARQUEE --- */
+        .marquee-wrapper { border-top: 1px solid var(--border-subtle); border-bottom: 1px solid var(--border-subtle); padding: 2rem 0; overflow: hidden; background: var(--bg-surface); display: flex; white-space: nowrap; }
+        .marquee { display: flex; animation: scroll 25s linear infinite; }
+        .marquee span { font-family: 'Fira Code', monospace; font-size: 1.5rem; color: var(--text-secondary); text-transform: uppercase; margin-right: 4rem; display: flex; align-items: center; gap: 2rem; }
+        .marquee span::after { content: "✦"; color: var(--accent); font-size: 1rem; }
+        @keyframes scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+
+        /* --- BENTO GRID ARCHITECTURE --- */
+        .architecture { padding: 10rem 0; }
+        .section-title { font-size: clamp(2.5rem, 5vw, 4rem); font-weight: 800; letter-spacing: -1px; margin-bottom: 4rem; max-width: 800px; }
+        
+        .bento-grid {
+            display: grid; grid-template-columns: repeat(4, 1fr); grid-auto-rows: minmax(300px, auto);
+            gap: 1.5rem;
+        }
+        
+        .bento-card {
+            background: var(--bg-surface); border: 1px solid var(--border-subtle); padding: 3rem;
+            display: flex; flex-direction: column; justify-content: space-between; transition: all 0.4s ease;
+            position: relative; overflow: hidden;
+        }
+        .bento-card:hover { border-color: var(--accent); background: var(--bg-surface-elevated); transform: scale(0.99); }
+        
+        /* Grid Spanning */
+        .span-2 { grid-column: span 2; }
+        .span-4 { grid-column: span 4; }
+        .span-row-2 { grid-row: span 2; }
+
+        .bento-card h3 { font-size: 1.8rem; margin-bottom: 1rem; font-weight: 600; letter-spacing: -0.5px; }
+        .bento-card p { color: var(--text-secondary); font-size: 1rem; font-weight: 300; line-height: 1.6; }
+        
+        .bento-icon { font-size: 2.5rem; color: var(--accent); margin-bottom: 2rem; font-family: 'Fira Code'; }
+        
+        /* Code Block inside Bento */
+        .bento-code {
+            background: #000; border: 1px solid var(--border-subtle); padding: 1.5rem; font-family: 'Fira Code', monospace;
+            font-size: 0.85rem; color: #a9a9a9; margin-top: 2rem;
+        }
+        .code-keyword { color: var(--accent); }
+        .code-string { color: #00F0FF; }
+
+        /* --- FOOTER --- */
+        footer { border-top: 1px solid var(--border-subtle); padding: 6rem 0 2rem; background: var(--bg-surface); }
+        .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 4rem; margin-bottom: 4rem; }
+        .footer-logo { font-size: 2rem; font-weight: 900; margin-bottom: 1rem; }
+        .footer-links h4 { color: var(--text-primary); margin-bottom: 1.5rem; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; }
+        .footer-links ul { list-style: none; }
+        .footer-links li { margin-bottom: 0.8rem; }
+        .footer-links a { color: var(--text-secondary); text-decoration: none; font-size: 0.9rem; transition: color 0.2s; }
+        .footer-links a:hover { color: var(--accent); }
+        .footer-bottom { border-top: 1px solid var(--border-subtle); padding-top: 2rem; display: flex; justify-content: space-between; color: var(--text-secondary); font-size: 0.8rem; }
+
+        @media (max-width: 900px) {
+            .bento-grid { grid-template-columns: 1fr; }
+            .span-2, .span-4, .span-row-2 { grid-column: span 1; grid-row: span 1; }
+            .footer-grid { grid-template-columns: 1fr; }
+            .nav-links { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="network-canvas"></canvas>
+    <div class="noise"></div>
+    <div class="cursor-dot" id="cursor-dot"></div>
+    <div class="cursor-outline" id="cursor-outline"></div>
+
+    <div class="relative">
+        <nav>
+            <div class="container nav-inner">
+                <div class="logo">Lofty<span>OS</span></div>
+                <div class="nav-links">
+                    <a href="#" class="hover-target">Architecture</a>
+                    <a href="#" class="hover-target">Substrate</a>
+                    <a href="#" class="hover-target">Docs</a>
+                    <a href="#" class="hover-target">GitHub</a>
+                </div>
+            </div>
+        </nav>
+
+        <section class="hero container">
+            <div class="hero-content reveal">
+                <div class="badge">SYSTEM_STATUS: ONLINE // VERSION 2.0</div>
+                <h1>Autonomy.<br><span>Unleashed.</span></h1>
+                <p>The high-performance, open-source agentic framework. Compound reasoning dynamically routed through specialized sub-agents on your own silicon.</p>
+                <div class="btn-group">
+                    <a href="#" class="btn btn-primary hover-target">Initialize Agent</a>
+                    <a href="#" class="btn btn-outline hover-target">View Repository</a>
+                </div>
+            </div>
+        </section>
+
+        <div class="marquee-wrapper relative">
+            <div class="marquee">
+                <span>Local-First Execution</span><span>Compound Reasoning</span><span>Vector Memory Built-In</span><span>Self-Healing Code</span><span>Infinite Tool Use</span>
+                <span>Local-First Execution</span><span>Compound Reasoning</span><span>Vector Memory Built-In</span><span>Self-Healing Code</span><span>Infinite Tool Use</span>
+            </div>
+        </div>
+
+        <section class="architecture container">
+            <h2 class="section-title reveal">The Compositional Fabric.<br>Built for the Edge.</h2>
+            
+            <div class="bento-grid">
+                <div class="bento-card span-2 span-row-2 reveal">
+                    <div class="bento-icon">01</div>
+                    <h3>Agentic Routing Matrix</h3>
+                    <p>Lofty doesn't rely on monolithic prompts. Requests are dynamically routed through a specialized fabric of micro-agents, determining the optimal execution path in real-time.</p>
+                    <div class="bento-code">
+                        <div><span class="code-keyword">const</span> lofty = <span class="code-keyword">new</span> Lofty({</div>
+                        <div>&nbsp;&nbsp;mode: <span class="code-string">'compound_reasoning'</span>,</div>
+                        <div>&nbsp;&nbsp;localSilicon: <span class="code-keyword">true</span></div>
+                        <div>});</div>
+                        <br>
+                        <div><span class="code-keyword">await</span> lofty.execute(objective);</div>
+                    </div>
+                </div>
+
+                <div class="bento-card reveal">
+                    <div class="bento-icon">02</div>
+                    <h3>Absolute Privacy</h3>
+                    <p>Zero cloud dependency. Lofty operates natively on your hardware, ensuring proprietary data never leaves your environment.</p>
+                </div>
+
+                <div class="bento-card reveal">
+                    <div class="bento-icon">03</div>
+                    <h3>Vector Substrate</h3>
+                    <p>Continuous learning. Seamlessly integrated local vector databases allow your agents to recall past interactions instantly.</p>
+                </div>
+
+                <div class="bento-card span-2 reveal">
+                    <div class="bento-icon">04</div>
+                    <h3>Extensible Tool Calling</h3>
+                    <p>Give your agents hands. From bash terminals to headless browsers and internal APIs, plug in tools with three lines of code.</p>
+                </div>
+            </div>
+        </section>
+
+        <footer>
+            <div class="container">
+                <div class="footer-grid">
+                    <div>
+                        <div class="footer-logo">Lofty<span>.</span></div>
+                        <p style="color: var(--text-secondary); max-width: 300px; margin-top: 1rem; font-size: 0.9rem;">
+                            Orchestrating AI for industry transformation. Open-source agentic systems for developers.
+                        </p>
+                    </div>
+                    <div class="footer-links">
+                        <h4>Framework</h4>
+                        <ul>
+                            <li><a href="#" class="hover-target">Core Engine</a></li>
+                            <li><a href="#" class="hover-target">Memory Modules</a></li>
+                            <li><a href="#" class="hover-target">Tool Registry</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-links">
+                        <h4>Ecosystem</h4>
+                        <ul>
+                            <li><a href="#" class="hover-target">Documentation</a></li>
+                            <li><a href="#" class="hover-target">Discord Server</a></li>
+                            <li><a href="#" class="hover-target">GitHub</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="footer-bottom">
+                    <p>© 2026 Lofty OS™ Open Source. All rights reserved.</p>
+                    <p>INITIALIZED IN LOCALHOST</p>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // 1. CUSTOM MAGNETIC CURSOR
+        const cursorDot = document.getElementById('cursor-dot');
+        const cursorOutline = document.getElementById('cursor-outline');
+        const hoverTargets = document.querySelectorAll('.hover-target, a, .btn');
+
+        let cursorX = window.innerWidth / 2;
+        let cursorY = window.innerHeight / 2;
+        let outlineX = cursorX;
+        let outlineY = cursorY;
+
+        window.addEventListener('mousemove', (e) => {
+            cursorX = e.clientX;
+            cursorY = e.clientY;
+            
+            // Instantly move the small dot
+            cursorDot.style.left = `${cursorX}px`;
+            cursorDot.style.top = `${cursorY}px`;
+        });
+
+        // Smooth follow for the outline using requestAnimationFrame
+        function animateCursor() {
+            let dx = cursorX - outlineX;
+            let dy = cursorY - outlineY;
+            
+            // Easing factor (lower is slower/smoother)
+            outlineX += dx * 0.15;
+            outlineY += dy * 0.15;
+            
+            cursorOutline.style.left = `${outlineX}px`;
+            cursorOutline.style.top = `${outlineY}px`;
+            
+            requestAnimationFrame(animateCursor);
+        }
+        animateCursor();
+
+        // Add hover effects
+        hoverTargets.forEach(target => {
+            target.addEventListener('mouseenter', () => cursorOutline.classList.add('hover-state'));
+            target.addEventListener('mouseleave', () => cursorOutline.classList.remove('hover-state'));
+        });
+
+        // 2. SCROLL REVEAL (Intersection Observer)
+        const revealElements = document.querySelectorAll('.reveal');
+        
+        const revealObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                    observer.unobserve(entry.target); // Only animate once
+                }
+            });
+        }, {
+            root: null,
+            threshold: 0.1,
+            rootMargin: "0px 0px -50px 0px"
+        });
+
+        revealElements.forEach(el => revealObserver.observe(el));
+
+        // 3. CANVAS PARTICLE NETWORK (Agent Routing Simulation)
+        const canvas = document.getElementById('network-canvas');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+        let particles = [];
+
+        function resizeCanvas() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height;
+                this.vx = (Math.random() - 0.5) * 0.5;
+                this.vy = (Math.random() - 0.5) * 0.5;
+                this.radius = Math.random() * 1.5 + 0.5;
+            }
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                
+                // Mouse interaction - particles avoid the cursor slightly
+                let dx = cursorX - this.x;
+                let dy = cursorY - this.y;
+                let distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < 150) {
+                    this.x -= dx * 0.01;
+                    this.y -= dy * 0.01;
+                }
+
+                // Bounce off edges
+                if (this.x < 0 || this.x > width) this.vx *= -1;
+                if (this.y < 0 || this.y > height) this.vy *= -1;
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+                ctx.fill();
+            }
+        }
+
+        // Initialize particles
+        const particleCount = Math.min(window.innerWidth / 15, 100); // Scale based on screen size
+        for (let i = 0; i < particleCount; i++) {
+            particles.push(new Particle());
+        }
+
+        function animateNetwork() {
+            ctx.clearRect(0, 0, width, height);
+            
+            for (let i = 0; i < particles.length; i++) {
+                particles[i].update();
+                particles[i].draw();
+                
+                // Draw connecting lines
+                for (let j = i; j < particles.length; j++) {
+                    let dx = particles[i].x - particles[j].x;
+                    let dy = particles[i].y - particles[j].y;
+                    let distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance < 120) {
+                        ctx.beginPath();
+                        ctx.strokeStyle = `rgba(234, 255, 0, ${0.15 - distance/800})`; // Accent color lines
+                        ctx.lineWidth = 0.5;
+                        ctx.moveTo(particles[i].x, particles[i].y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.stroke();
+                    }
+                }
+            }
+            requestAnimationFrame(animateNetwork);
+        }
+        animateNetwork();
+    </script>
+</body>
+</html>

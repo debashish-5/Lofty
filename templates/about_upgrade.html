@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LOFTY — Genesis, Sources & Substrate</title>
+  <meta name="description" content="Deep technical overview of the LOFTY agentic framework, execution data pipelines, and foundational history." />
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700;800&family=Space+Grotesk:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+
+  <style>
+    /* =========================================
+       CORE ARCHITECTURAL THEMING (CYBER-YELLOW)
+       ========================================= */
+    :root {
+      --bg: #020202;
+      --bg-card: #080808;
+      --bg-elevated: #121212;
+      --bg-glass: rgba(4, 4, 4, 0.65);
+      --text: #f5f5f5;
+      --muted: rgba(245, 245, 245, 0.5);
+      --line: rgba(255, 255, 255, 0.07);
+      
+      /* Pure Electric Cyber Yellow Spec */
+      --accent: #D4FF00;
+      --accent-glow: rgba(212, 255, 0, 0.25);
+      --accent-soft: rgba(212, 255, 0, 0.05);
+      
+      --radius-xl: 24px;
+      --radius-lg: 14px;
+      --transition-main: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; cursor: none !important; }
+    html { scroll-behavior: smooth; background-color: var(--bg); }
+    
+    body {
+      font-family: 'Space Grotesk', sans-serif;
+      color: var(--text);
+      overflow-x: hidden;
+      background: var(--bg);
+    }
+
+    a { text-decoration: none; color: inherit; }
+    button { font: inherit; outline: none; border: none; background: transparent; }
+
+    /* Custom Scrollbar System */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: #222; border-radius: 10px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+    /* =========================================
+       HARDWARE-ACCELERATED VECTOR CANVAS
+       ========================================= */
+    #flowfield-canvas {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      z-index: 1; opacity: 0.65; pointer-events: none;
+    }
+    .crt-grain {
+      position: fixed; inset: 0; z-index: 2; opacity: 0.04; pointer-events: none;
+      background-image: url('data:image/svg+xml,%3Csvg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"%3E%3Cfilter id="noise"%3E%3CfeTurbulence type="fractalNoise" baseFrequency="0.95" numOctaves="4" stitchTiles="stitch"/%3E%3C/filter%3E%3Crect width="100%25" height="100%25" filter="url(%23noise)"/%3E%3C/svg%3E');
+    }
+
+    /* =========================================
+       SMOOTH INTERPOLATION CURSOR
+       ========================================= */
+    #cursor-core {
+      position: fixed; top: 0; left: 0; width: 4px; height: 4px;
+      background: var(--accent); border-radius: 50%;
+      transform: translate(-50%, -50%); z-index: 10000; pointer-events: none;
+      box-shadow: 0 0 15px var(--accent), 0 0 30px var(--accent);
+    }
+    #cursor-aura {
+      position: fixed; top: 0; left: 0; width: 32px; height: 32px;
+      border: 1px solid var(--accent); border-radius: 50%;
+      transform: translate(-50%, -50%); z-index: 9999; pointer-events: none;
+      transition: width 0.3s var(--transition-main), height 0.3s var(--transition-main), background 0.3s ease;
+    }
+    .state-link-hover #cursor-aura {
+      width: 75px; height: 75px; background: var(--accent-soft); border-color: transparent; backdrop-filter: blur(2px);
+    }
+
+    /* =========================================
+       CINEMATIC VIDEO SUBSTRATE WRAPPER
+       ========================================= */
+    .video-hero-substrate {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      z-index: 0; pointer-events: none; overflow: hidden;
+    }
+    .video-hero-substrate video {
+      width: 100%; height: 100%; object-fit: cover;
+      filter: saturate(0) contrast(1.15) brightness(0.25);
+    }
+    .video-ambient-glow {
+      position: absolute; inset: 0;
+      background: 
+        radial-gradient(circle at 80% 20%, rgba(212, 255, 0, 0.05), transparent 50%),
+        radial-gradient(circle at center, transparent 20%, rgba(2,2,2,0.95) 90%);
+    }
+
+    /* =========================================
+       HEADS-UP-DISPLAY NAVIGATION
+       ========================================= */
+    .hud-nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      padding: 24px 40px; background: linear-gradient(to bottom, rgba(2,2,2,0.95), transparent);
+    }
+    .hud-inner {
+      display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 1px solid var(--line); padding-bottom: 16px;
+    }
+    .hud-brand { display: flex; align-items: center; gap: 14px; }
+    .hud-brand-logo {
+      width: 32px; height: 32px; border: 1px solid var(--accent); display: grid; place-items: center;
+      font-family: 'JetBrains Mono'; font-weight: 800; color: var(--accent); font-size: 0.9rem;
+    }
+    .hud-brand-meta h1 { font-family: 'JetBrains Mono'; font-size: 1rem; font-weight: 700; letter-spacing: 0.1em; }
+    .hud-brand-meta p { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; font-family: 'JetBrains Mono'; }
+    
+    .hud-links { display: flex; gap: 32px; }
+    .hud-links a {
+      font-family: 'JetBrains Mono'; font-size: 0.8rem; font-weight: 500; text-transform: uppercase;
+      letter-spacing: 0.15em; color: var(--muted); transition: color 0.3s ease;
+    }
+    .hud-links a:hover, .hud-links a.active { color: var(--accent); text-shadow: 0 0 10px var(--accent-glow); }
+
+    /* =========================================
+       MAIN DOM OVERLAY CONTAINER
+       ========================================= */
+    .main-viewport {
+      position: relative; z-index: 10; width: 100%;
+      margin-top: 55vh; background: linear-gradient(to bottom, transparent 0%, var(--bg) 15vh);
+      padding-bottom: 80px;
+    }
+    .shell { width: min(1400px, calc(100% - 64px)); margin: 0 auto; }
+    
+    .reveal { opacity: 0; transform: translateY(30px); transition: all 1s var(--transition-main); }
+    .reveal.active { opacity: 1; transform: translateY(0); }
+
+    /* Abstract Heading Scrambler Styles */
+    .matrix-title {
+      font-size: clamp(3rem, 7vw, 6.5rem); font-weight: 900; line-height: 0.9;
+      letter-spacing: -0.04em; text-transform: uppercase; margin-bottom: 30px;
+    }
+    .matrix-title span { color: var(--accent); }
+
+    /* =========================================
+       EPISTEMOLOGY MATRIX (BENTO BOX LAYOUT)
+       ========================================= */
+    .bento-section { padding: 100px 0; }
+    .bento-header { margin-bottom: 60px; display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: flex-end;}
+    .bento-header p { color: var(--muted); font-size: 1.1rem; max-width: 520px; line-height: 1.7; }
+    
+    .bento-grid {
+      display: grid; grid-template-columns: repeat(12, 1fr); gap: 20px;
+    }
+    .bento-card {
+      background: var(--bg-card); border: 1px solid var(--line); border-radius: var(--radius-xl);
+      padding: 40px; position: relative; overflow: hidden; display: flex; flex-direction: column;
+      justify-content: space-between; transition: border-color 0.4s var(--transition-main);
+    }
+    .bento-card:hover { border-color: var(--accent); }
+    
+    /* Configurable Grid Units */
+    .span-4 { grid-column: span 4; }
+    .span-8 { grid-column: span 8; }
+    .span-12 { grid-column: span 12; }
+    
+    .bento-card-meta { font-family: 'JetBrains Mono'; font-size: 0.75rem; color: var(--accent); margin-bottom: 24px; text-transform: uppercase; letter-spacing: 1px;}
+    .bento-card h3 { font-size: 2rem; font-weight: 700; margin-bottom: 12px; letter-spacing: -0.02em; text-transform: uppercase;}
+    .bento-card p { color: var(--muted); font-size: 1rem; line-height: 1.65; }
+
+    /* Dynamic Logic Terminal Component */
+    .hud-terminal {
+      background: #000; border: 1px solid var(--line); border-radius: var(--radius-lg);
+      padding: 24px; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: #a5a5a5;
+      margin-top: 30px; height: 160px; overflow: hidden; position: relative;
+    }
+    .hud-terminal::after {
+      content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 40px;
+      background: linear-gradient(to bottom, transparent, #000); pointer-events: none;
+    }
+    .term-row { margin-bottom: 6px; display: flex; gap: 12px; }
+    .term-tag { color: var(--accent); }
+
+    /* =========================================
+       CHRONICLES SECTION (GENESIS TIMELINE)
+       ========================================= */
+    .chronicles-section { padding: 80px 0; border-top: 1px solid var(--line); }
+    .chronicles-grid { display: grid; grid-template-columns: 350px 1fr; gap: 80px; align-items: start; }
+    
+    .sticky-hud { position: sticky; top: 140px; }
+    .hud-spec-box {
+      border: 1px solid var(--line); background: var(--bg-card); padding: 30px; border-radius: var(--radius-xl);
+    }
+    .hud-spec-row {
+      display: flex; justify-content: space-between; font-family: 'JetBrains Mono';
+      font-size: 0.8rem; padding: 14px 0; border-bottom: 1px solid var(--line);
+    }
+    .hud-spec-row:last-child { border-bottom: none; }
+    .hud-spec-label { color: var(--muted); text-transform: uppercase; }
+    .hud-spec-value { color: var(--accent); font-weight: 700; }
+
+    .timeline-stream {
+      position: relative; padding-left: 50px;
+    }
+    .timeline-stream::before {
+      content: ''; position: absolute; left: 4px; top: 0; bottom: 0; width: 1px; background: var(--line);
+    }
+    .timeline-node { position: relative; margin-bottom: 70px; }
+    .timeline-node::before {
+      content: ''; position: absolute; left: -50px; top: 6px; width: 9px; height: 9px;
+      border-radius: 50%; background: var(--bg); border: 2px solid var(--accent);
+      box-shadow: 0 0 10px var(--accent); transition: all 0.3s ease;
+    }
+    .timeline-node:hover::before { background: var(--accent); transform: scale(1.3); }
+    
+    .timeline-epoch { font-family: 'JetBrains Mono'; font-size: 0.8rem; color: var(--accent); margin-bottom: 8px; display: block; letter-spacing: 1px;}
+    .timeline-card { background: var(--bg-glass); border: 1px solid var(--line); border-radius: var(--radius-xl); padding: 36px; backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
+    .timeline-card h4 { font-size: 1.6rem; font-weight: 700; margin-bottom: 12px; text-transform: uppercase;}
+
+    /* =========================================
+       DYNAMIC TICKER MARQUEE
+       ========================================= */
+    .ticker-wrap { border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 24px 0; overflow: hidden; background: #040404; position: relative; z-index: 10;}
+    .ticker { display: flex; animation: runTicker 25s linear infinite; }
+    .ticker span {
+      font-family: 'JetBrains Mono', monospace; font-size: 1.1rem; color: var(--text);
+      text-transform: uppercase; white-space: nowrap; margin-right: 5rem; display: flex; align-items: center; gap: 5rem;
+    }
+    .ticker span::after { content: "⚡"; color: var(--accent); }
+    @keyframes runTicker { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+
+    /* =========================================
+       FOOTER MATRIX
+       ========================================= */
+    .matrix-footer { padding: 120px 0 40px; border-top: 1px solid var(--line); text-align: center; background: #000; position: relative; z-index: 10;}
+    .footer-title { font-size: clamp(4rem, 15vw, 12rem); font-weight: 900; letter-spacing: -0.06em; color: rgba(255,255,255,0.015); line-height: 0.8; margin-bottom: 40px; }
+    .footer-utils { display: flex; justify-content: space-between; border-top: 1px solid var(--line); padding-top: 24px; font-family: 'JetBrains Mono'; font-size: 0.8rem; color: var(--muted); }
+    .footer-utils a:hover { color: var(--accent); }
+
+    /* Responsive Adapters */
+    @media (max-width: 1024px) {
+      .chronicles-grid { grid-template-columns: 1fr; }
+      .sticky-hud { position: relative; top: 0; margin-bottom: 40px; }
+      .bento-header { grid-template-columns: 1fr; }
+      .span-8, .span-4 { grid-column: span 12; }
+    }
+  </style>
+</head>
+<body>
+
+  <canvas id="flowfield-canvas"></canvas>
+  <div class="crt-grain"></div>
+
+  <div id="cursor-core"></div>
+  <div id="cursor-aura"></div>
+
+  <div class="video-hero-substrate">
+    <video autoplay muted loop playsinline>
+      <source src="/static/assets/Final Shot Comp-Desktop.mp4" type="video/mp4" />
+    </video>
+    <div class="video-ambient-glow"></div>
+  </div>
+
+  <header class="hud-nav">
+    <div class="shell hud-inner">
+      <a class="hud-brand dom-interactive" href="/">
+        <div class="hud-brand-logo">L</div>
+        <div class="hud-brand-meta">
+          <h1>LOFTY.CORE</h1>
+          <p>Substrate Layer v4.0</p>
+        </div>
+      </a>
+      <nav class="hud-links">
+        <a href="/" class="dom-interactive">Index</a>
+        <a href="/feature" class="dom-interactive">Capabilities</a>
+        <a href="#" class="dom-interactive active">System Lore</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="main-viewport">
+    
+    <div class="shell" style="position: relative; height: 40vh;">
+      <div style="position: absolute; bottom: 40px; left: 0; max-width: 750px;">
+        <h1 class="matrix-title crypt-scramble" data-text="THE KERNEL ORIGIN">THE KERNEL ORIGIN</h1>
+        <p style="font-size: 1.2rem; line-height: 1.7; color: var(--muted); font-weight: 300;">
+          LOFTY is engineered as a decentralized cognitive extension, moving away from closed monolithic networks to run processing frameworks natively on private infrastructure.
+        </p>
+      </div>
+    </div>
+
+    <div class="ticker-wrap">
+      <div class="ticker">
+        <span>Substrate Pattern: Compositional Fabric</span>
+        <span>Reasoning Engine: Eve-Fusion Family</span>
+        <span>Telemetry State: Active</span>
+        <span>Secure Docker Sandbox Enforced</span>
+        <span>Substrate Pattern: Compositional Fabric</span>
+        <span>Reasoning Engine: Eve-Fusion Family</span>
+        <span>Telemetry State: Active</span>
+        <span>Secure Docker Sandbox Enforced</span>
+      </div>
+    </div>
+
+    <section class="shell bento-section">
+      <div class="bento-header reveal">
+        <h2 style="font-size: 3rem; font-weight: 900; text-transform: uppercase; letter-spacing: -1px;">Ingestion Matrix &<br>Data Epistemology</h2>
+        <p>LOFTY does not operate on a standard static weight index. Knowledge states are compiled via active semantic validation loops across decentralized storage nodes.</p>
+      </div>
+
+      <div class="bento-grid">
+        
+        <div class="bento-card span-8 reveal dom-interactive">
+          <div>
+            <div class="bento-card-meta">Module // Knowledge Ingestion</div>
+            <h3>Retrieval-Augmented Substrate</h3>
+            <p>Utilizing high-density embeddings and cosine similarity matrix metrics, LOFTY processes query logic against localized graphs. This eliminates dependency on remote cloud boundaries, fulfilling strict security requirements.</p>
+          </div>
+          <div class="hud-terminal" id="log-terminal">
+            </div>
+        </div>
+
+        <div class="bento-card span-4 reveal dom-interactive" style="background: var(--accent); color: #000; border: none;">
+          <div>
+            <div class="bento-card-meta" style="color: rgba(0,0,0,0.6); font-weight: 800;">Execution // Core Sandbox</div>
+            <h3 style="color: #000;">Self-Healing Diagnostics</h3>
+            <p style="color: rgba(0,0,0,0.75); font-size: 0.95rem;">When an action encounters an error within our micro-isolated runtime framework, stack arrays route directly back into the reasoning core to repair and compile target code structures on-the-fly.</p>
+          </div>
+          <div style="font-family: 'JetBrains Mono'; font-size: 0.75rem; font-weight: bold; margin-top: 20px; border-top: 1px solid rgba(0,0,0,0.15); padding-top: 14px;">
+            SECURE EXECUTABLE ENVIRONMENT // MIT LNC
+          </div>
+        </div>
+
+        <div class="bento-card span-12 reveal dom-interactive">
+          <div style="max-width: 700px;">
+            <div class="bento-card-meta">Pipeline // Audio Architecture</div>
+            <h3>Low-Latency Voice Integration</h3>
+            <p>Drawing core optimizations from real-time audio networks like [Voxr AI](https://www.voxr.ai/), LOFTY deploys an integrated audio codec layer directly alongside the reasoning kernel. Full-duplex parsing maps vocal tone metrics instantly, keeping processing turnaround strictly below the human conversational threshold.</p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <section class="shell chronicles-section">
+      <div class="chronicles-grid">
+        
+        <aside class="sticky-hud reveal">
+          <div class="hud-spec-box">
+            <h3 style="font-family:'JetBrains Mono'; font-size:1rem; margin-bottom:20px; text-transform:uppercase; color:var(--accent);">Telemetry Specs</h3>
+            <div class="hud-spec-row"><span class="hud-spec-label">Substrate Spec</span><span class="hud-spec-value">AI-Native</span></div>
+            <div class="hud-spec-row"><span class="hud-spec-label">Network Deployment</span><span class="hud-spec-value">Private Edge</span></div>
+            <div class="hud-spec-row"><span class="hud-spec-label">Orchestrator Layer</span><span class="hud-spec-value">Multi-Agent</span></div>
+            <div class="hud-spec-row"><span class="hud-spec-label">Telemetry Status</span><span class="hud-spec-value">Optimal</span></div>
+          </div>
+        </aside>
+
+        <div class="timeline-stream">
+          
+          <div class="timeline-node reveal">
+            <span class="timeline-epoch">EPOCH 01 // ARCHITECTURAL BASELINE</span>
+            <div class="timeline-card">
+              <h4>Monolithic Constraints</h4>
+              <p>Initial model engineering relied entirely on static model files. Systems could parse syntax structures fluently but could not interact outside static contexts or verify external API tokens natively.</p>
+            </div>
+          </div>
+
+          <div class="timeline-node reveal">
+            <span class="timeline-epoch">EPOCH 02 // VECTOR ROUTING DEPLOYMENT</span>
+            <div class="timeline-card">
+              <h4>Stateful Continuous Memory</h4>
+              <p>Integration of spatial vector nodes allowed the runtime environment to parse historical reference chains. Memory vectors are compiled on individual local devices, preserving absolute transaction privacy without third-party leak risk.</p>
+            </div>
+          </div>
+
+          <div class="timeline-node reveal">
+            <span class="timeline-epoch">EPOCH 03 // AGENTIC BLUEPRINT ARRIVAL</span>
+            <div class="timeline-card">
+              <h4>Compositional Agent Fabric</h4>
+              <p>Heavily informed by the multi-tier coordination frameworks of platforms like [MindHYVE](https://mindhyve.ai/technology/) and [DV8](https://dv8.bz/), the LOFTY matrix transitioned into an active agent orchestrator. Central system commands map tasks down to adaptive micro-processes, resolving deep programmatic workflow pipelines autonomously.</p>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+    <footer class="matrix-footer">
+      <div class="shell">
+        <div class="footer-huge">LOFTY</div>
+        <div class="footer-utils">
+          <div>© 2026 LOFTY ENGINE LABS. COGNITIVE SUBSTRATE OPERATIONAL.</div>
+          <div>
+            <a href="#" class="dom-interactive" style="margin-right: 24px;">Source Index</a>
+            <a href="#" class="dom-interactive">System Docs</a>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+  </main>
+
+  <script>
+    // 1. Vector Attractor Flow-Field Canvas Engine
+    const canvas = document.getElementById('flowfield-canvas');
+    const ctx = canvas.getContext('2d');
+    let width, height, particles = [];
+    let mouse = { x: 0, y: 0, active: false };
+
+    function initCanvasDimensions() {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', initCanvasDimensions);
+    initCanvasDimensions();
+
+    // Map mouse coordinates
+    window.addEventListener('mousemove', (e) => {
+      mouse.x = e.clientX;
+      mouse.y = e.clientY;
+      mouse.active = true;
+    });
+    window.addEventListener('mouseleave', () => mouse.active = false);
+
+    class FlowParticle {
+      constructor() {
+        this.reset();
+      }
+      reset() {
+        this.x = Math.random() * width;
+        this.y = Math.random() * height;
+        this.speed = Math.random() * 1.5 + 0.5;
+        this.angle = Math.random() * Math.PI * 2;
+        this.life = Math.random() * 200 + 100;
+        this.opacity = Math.random() * 0.4 + 0.1;
+      }
+      update() {
+        // Compute base vector rotation logic based on sine coordinate offsets
+        this.angle += (Math.sin(this.x * 0.005) + Math.cos(this.y * 0.005)) * 0.02;
+        
+        // Gravitational pulling matrix calculation if mouse coordinates are active
+        if (mouse.active) {
+          let dx = mouse.x - this.x;
+          let dy = mouse.y - this.y;
+          let distance = Math.sqrt(dx * dx + dy * dy);
+          if (distance < 250) {
+            let pull = (250 - distance) / 250 * 0.05;
+            this.angle += Math.atan2(dy, dx) * pull - this.angle * pull;
+          }
+        }
+
+        this.x += Math.cos(this.angle) * this.speed;
+        this.y += Math.sin(this.angle) * this.speed;
+        this.life--;
+
+        if (this.life <= 0 || this.x < 0 || this.x > width || this.y < 0 || this.y > height) {
+          this.reset();
+        }
+      }
+      draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, 1, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(212, 255, 0, ${this.opacity})`;
+        ctx.fill();
+      }
+    }
+
+    // Populate active matrix array pool
+    const particlePoolDensity = Math.min(window.innerWidth / 8, 180);
+    for (let i = 0; i < particlePoolDensity; i++) {
+      particles.push(new FlowParticle());
+    }
+
+    function processingLoop() {
+      // Intentional ghost trail blending mechanic instead of standard clear Rect step
+      ctx.fillStyle = 'rgba(2, 2, 2, 0.08)';
+      ctx.fillRect(0, 0, width, height);
+
+      particles.forEach(p => {
+        p.update();
+        p.draw();
+      });
+      requestAnimationFrame(processingLoop);
+    }
+    processingLoop();
+
+    // 2. Smooth Interpolation Easing Cursor Execution
+    const coreDot = document.getElementById('cursor-core');
+    const auraRing = document.getElementById('cursor-aura');
+    let targetX = width / 2, targetY = height / 2;
+    let actualRingX = targetX, actualRingY = targetY;
+
+    window.addEventListener('mousemove', (e) => {
+      targetX = e.clientX;
+      targetY = e.clientY;
+      coreDot.style.transform = `translate(${targetX}px, ${targetY}px)`;
+    });
+
+    function interpolationFrameLoop() {
+      let stepDeltaX = targetX - actualRingX;
+      let stepDeltaY = targetY - actualRingY;
+      
+      // Easing multiplier computation (0.15 gives high-end magnetic damping)
+      actualRingX += stepDeltaX * 0.15;
+      actualRingY += stepDeltaY * 0.15;
+      
+      auraRing.style.transform = `translate(${actualRingX}px, ${actualRingY}px)`;
+      requestAnimationFrame(interpolationFrameLoop);
+    }
+    interpolationFrameLoop();
+
+    document.querySelectorAll('.dom-interactive, a, button').forEach(item => {
+      item.addEventListener('mouseenter', () => document.body.classList.add('state-link-hover'));
+      item.addEventListener('mouseleave', () => document.body.classList.remove('state-link-hover'));
+    });
+
+    // 3. Scroll Reveal Element Handler (Intersection Configuration)
+    const revealTargets = document.querySelectorAll('.reveal');
+    const revealEngine = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('active');
+          revealEngine.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.15 });
+    revealTargets.forEach(target => revealEngine.observe(target));
+
+    // 4. Cryptographic Structural Text Scramble Animator
+    class TextDecoder {
+      constructor(domElement) {
+        this.domElement = domElement;
+        this.cipherPool = '!<>-_\\/[]{}—=+*^?#________';
+        this.performUpdate = this.performUpdate.bind(this);
+      }
+      decodeString(targetString) {
+        const initialText = this.domElement.innerText;
+        const processLength = Math.max(initialText.length, targetString.length);
+        this.animationQueue = [];
+        
+        for (let i = 0; i < processLength; i++) {
+          const charFrom = initialText[i] || '';
+          const charTo = targetString[i] || '';
+          const frameStart = Math.floor(Math.random() * 30);
+          const frameEnd = frameStart + Math.floor(Math.random() * 30);
+          this.animationQueue.push({ charFrom, charTo, frameStart, frameEnd });
+        }
+        cancelAnimationFrame(this.frameRequest);
+        this.currentFrame = 0;
+        this.performUpdate();
+      }
+      performUpdate() {
+        let blockOutput = '';
+        let countCompleted = 0;
+        
+        for (let i = 0; i < this.animationQueue.length; i++) {
+          let { charFrom, charTo, frameStart, frameEnd, activeChar } = this.animationQueue[i];
+          if (this.currentFrame >= frameEnd) {
+            countCompleted++;
+            blockOutput += charTo;
+          } else if (this.currentFrame >= frameStart) {
+            if (!activeChar || Math.random() < 0.3) {
+              activeChar = this.cipherPool[Math.floor(Math.random() * this.cipherPool.length)];
+              this.animationQueue[i].activeChar = activeChar;
+            }
+            blockOutput += `<span style="color:var(--accent);">${activeChar}</span>`;
+          } else {
+            blockOutput += charFrom;
+          }
+        }
+        this.domElement.innerHTML = blockOutput;
+        if (countCompleted !== this.animationQueue.length) {
+          this.frameRequest = requestAnimationFrame(this.performUpdate);
+          this.currentFrame++;
+        }
+      }
+    }
+
+    const scrambleTargets = document.querySelectorAll('.crypt-scramble');
+    const scrambleEngine = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const handler = new TextDecoder(entry.target);
+          handler.decodeString(entry.target.getAttribute('data-text'));
+          scrambleEngine.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.5 });
+    scrambleTargets.forEach(target => scrambleEngine.observe(target));
+
+    // 5. Ingestion Matrix Log Terminal Loop Simulator
+    const terminalNode = document.getElementById('log-terminal');
+    const systemLogsRepository = [
+      "sys.verify_index(node='vdb_local_01')",
+      "Establishing cosine semantic route...",
+      "Graph sequence synchronized // cluster_alpha",
+      "Parsing ingestion metrics for local execution context...",
+      "Docker runtime state: sandbox_secure == true",
+      "Memory stack arrays optimized. Memory leakage: 0.00%",
+      "Awaiting local loop trigger sequence..."
+    ];
+
+    function appendLiveLogLine() {
+      const lineContainer = document.createElement('div');
+      lineContainer.className = 'term-row';
+      const clockTimestamp = new Date().toISOString().split('T')[1].substring(0,8);
+      const randomLogValue = systemLogsRepository[Math.floor(Math.random() * systemLogsRepository.length)];
+      
+      lineContainer.innerHTML = `<span>[${clockTimestamp}]</span> <span class="term-tag">></span> <span>${randomLogValue}</span>`;
+      terminalNode.prepend(lineContainer);
+      
+      if (terminalNode.children.length > 5) {
+        terminalNode.removeChild(terminalNode.lastChild);
+      }
+      setTimeout(appendLiveLogLine, Math.random() * 1000 + 600);
+    }
+    appendLiveLogLine();
+  </script>
+</body>
+</html>
