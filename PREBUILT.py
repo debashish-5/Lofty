@@ -22,6 +22,8 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 from langchain_core.chains import SequentialChain
 from langchain_core.chains import SimpleSequentialChain
+from langchain_google_community import GmailToolkit, GmailSearchTool, GmailReadTool, GmailSendTool
+from langchain_core.tools import BaseTool
 
 
 
@@ -45,4 +47,15 @@ class prebuilt:
         """
         docs = self.retriever.invoke(query)
         return "\n\n".join(d.page_content for d in docs[:4])
-    def 
+    def gmail_search(self,query:str) -> str:
+        """Given a query, this tool searches the user's Gmail inbox for relevant emails and returns a summary of the search results."""
+        search_tool = self.GmailSearchTool()
+        return search_tool.invoke(query)
+    def gmail_read(self,email_id:str) -> str:
+        """Given an email ID, this tool retrieves the content of the specified email from the user's Gmail inbox and returns it as a string."""
+        read_tool = self.GmailReadTool()
+        return read_tool.invoke(email_id)
+    def gmail_send(self,reciption:str,subject:str,body:str) -> str:
+        """Given the recipient's email address, subject, and body of the email, this tool sends an email using the user's Gmail account and returns a confirmation message."""
+        send_tool = self.GmailSendTool()
+        return send_tool.invoke(reciption,subject,body)
