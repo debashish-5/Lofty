@@ -30,7 +30,7 @@ Environment:
 """
 
 from __future__ import annotations
-
+import requests
 import json
 import os
 import re
@@ -647,6 +647,27 @@ def index():
     except Exception as exc:
         return PlainTextResponse(f"index2.html not found: {exc}", status_code=404)
 
+
+from FineQwenGen import FineQwenInference
+@app.route("/finechat", methods=["GET"])
+def chat():
+    try:
+        text = requests.json.get("text", "")
+        if not text:
+            return {"error": "No text provided."}, 400
+        # For demonstration, we'll just echo the text back with a prefix.
+        input_prompt = f"Input: {text}"
+        inference = FineQwenInference(input_prompt)
+        response = inference.fine_tuned_qwen_response()
+        return {"response": response}
+    except Exception as exc:
+        return {'error':str(exc)}, 500
+    
+
+
+
+
+     
 
 @app.get("/home", response_class=HTMLResponse)
 def home():

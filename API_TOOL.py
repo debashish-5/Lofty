@@ -151,6 +151,17 @@ class APIAGENT:
                 return {"error": "No sol data available."}
         else:
             return {"error": "NASA Mars weather API request failed."}
-    @tool
-    def 
+    def get_tool(self):
+        """Return a tools for Langchain &  langGraph Agents."""
+        return [
+            self.get_conversion_factor,
+            self.convert,
+            self.weather_detector,
+            self.locate_me,
+            self.get_temperature,
+            self.analyze_domain_host,
+            self.define_technical_word,
+            self.nasa_result,
+            self.nasa_mars_weather
+        ]
     
