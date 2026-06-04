@@ -685,6 +685,22 @@
       el.addEventListener('mouseleave', () => document.body.classList.remove('hovering-link'));
     });
 
+    // Init Sequence button opens the upgraded chatbot page
+    const initSequenceButton = document.querySelector('.nav-cta.interactive');
+    if (initSequenceButton) {
+      initSequenceButton.addEventListener('click', () => {
+        window.location.href = '/chatbot-upgrade';
+      });
+    }
+
+    // Deploy Agent button opens the upgraded chatbot page
+    const deployAgentButton = document.querySelector('.btn.btn-primary.interactive');
+    if (deployAgentButton) {
+      deployAgentButton.addEventListener('click', () => {
+        window.location.href = '/chatbot-upgrade';
+      });
+    }
+
     // 3. CANVAS PARTICLE ENGINE (CYBER-YELLOW)
     const canvas = document.getElementById('bg-canvas');
     const ctx = canvas.getContext('2d');

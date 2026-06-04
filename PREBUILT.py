@@ -59,3 +59,4 @@ class prebuilt:
         """Given the recipient's email address, subject, and body of the email, this tool sends an email using the user's Gmail account and returns a confirmation message."""
         send_tool = self.GmailSendTool()
         return send_tool.invoke(reciption,subject,body)
+    

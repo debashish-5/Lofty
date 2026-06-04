@@ -1,6 +1,10 @@
 fastapi
-uvicorn
+uvicorn[standard]
 requests
 pydantic
+python-multipart
+langchain-core
+langgraph
+langchain-ollama
 faster-whisper
 pyttsx3

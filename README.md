@@ -22,6 +22,8 @@
 
 It is designed as a polished product and a strong developer portfolio project.
 
+Access the upgraded browser UI at `/chatbot-upgrade` once the server is running.
+
 ---
 
 ## Project Summary
@@ -76,6 +78,7 @@ Lofty is also a showcase of modern AI app design:
 * Memory storage for preferences and session context
 * Optional voice interaction using faster-whisper
 * Optional spoken replies using pyttsx3
+* Upgraded browser UI available at `/chatbot-upgrade`
 * Modular backend wrappers for cleaner expansion
 * Responsive frontend with cards, voice controls, and theme support
 * Privacy-friendly local model execution
