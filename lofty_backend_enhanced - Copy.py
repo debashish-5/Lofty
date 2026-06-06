@@ -119,12 +119,13 @@ knowledge_tools = [
 action_tools = prebuilt.get_gmail_tools()
 data_tools = prebuilt.get_sql_tools("sqlite:///company.db")
 
-from langchain.agents import create_react_agent
+from langchain.agents import create_agent
 
-api_agent = create_react_agent(llm_groq,api_tools, verbose=True)
-knowledge_agent = create_react_agent(llm_groq,knowledge_tools, verbose=True)
-action_agent = create_react_agent(llm_groq,action_tools,verbose=True)
-data_agent = create_react_agent(llm_groq,data_tools,verbose=True)
+
+api_agent = create_agent(llm_groq,api_tools, verbose=True)
+knowledge_agent = create_agent(llm_groq,knowledge_tools, verbose=True)
+action_agent = create_agent(llm_groq,action_tools,verbose=True)
+data_agent = create_agent(llm_groq,data_tools,verbose=True)
 
 @tool
 def run_api_agent(query:str) -> str:
@@ -135,6 +136,13 @@ def run_api_agent(query:str) -> str:
     })
     return result['messages'][-1].content if 'messages' in result else "No repsonse from API agent."
 
+@tool
+def run_data_agent(query:str) -> str:
+    """Run the Data Agent to answer questions o perform tasks the require database access or SQL queries."""
+    result = data_agent.invoke({
+        "messages":[HumanMessage(content=query)]
+    })
+    return result['messages'][-1].content if 'messages' in result else "No response from Data agent."
 
 @tool
 def run_knowledge_agent(query:str) -> str:
@@ -160,6 +168,17 @@ def run_action_agent(query:str) -> str:
         }
     )
     return result['messages'][-1].content if 'messages' in result else "No response from action agent."
+
+groq_agent = create_agent(
+    model=llm_groq,
+    tools = [
+        run_api_agent,
+        run_knowledge_agent,
+        run_action_agent,
+        run_data_agent
+    ],
+    verbose=True
+)
 
 
 
