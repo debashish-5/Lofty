@@ -91,6 +91,67 @@ BROWSER_URL = os.getenv("LOFTY_BROWSER_URL", "http://127.0.0.1:8000/")
 WHISPER_MODEL_SIZE = os.getenv("WHISPER_MODEL_SIZE", "base")
 ENABLE_TOOL_GRAPH = os.getenv("LOFTY_TOOL_GRAPH", "1") == "1"
 
+class GroqAgent:
+    question: str
+    result: str
+from langchain_groq import ChatGroq
+from API_TOOL import APIAGENT
+from PREBUILT import PrebuiltTools
+from tools import open_application
+import os
+from dotenv import load_dotenv
+# Load environment variables from .env file
+load_dotenv()
+
+# Initialize the model (it automatically pulls GROQ_API_KEY from os.environ)
+llm_groq = ChatGroq(
+    model="llama-3.3-70b-versatile",
+    temperature=0.7
+)
+
+api_tools = APIAGENT().get_tool()
+prebuilt = PrebuiltTools()
+
+knowledge_tools = [
+    prebuilt.websearch_tool(),
+    prebuilt.retrieve_data_tool()
+]
+action_tools = prebuilt.get_gmail_tools()
+data_tools = prebuilt.get_sql_tools("sqlite:///company.db")
+
+from langchain.agents import create_react_agent
+
+api_agent = create_react_agent(llm_groq,api_tools, verbose=True)
+knowledge_agent = create_react_agent(llm_groq,knowledge_tools, verbose=True)
+action_agent = create_react_agent(llm_groq,action_tools,verbose=True)
+data_agent = create_react_agent(llm_groq,data_tools,verbose=True)
+
+@tool
+def run_knowledge_agent(query:str) -> str:
+    """Run the knowledge agent to answer questions or retrieve information."""
+    result = knowledge_agent.invoke(
+        {
+            "messages": [HumanMessage(content=query)]
+        }
+    )
+    return result['message'][-1].content if 'message' in result else "No response from knowledge agent."
+
+@tool
+def run_action_agent(query:str) -> str:
+    """Run the action agent to perform task like:
+    - sending emails
+    - reading notifications
+    - managing calendar events
+    - other productivity tasks.
+    """
+    result = action_agent.invoke(
+        {
+            "messages":[HumanMessage(content=query)]
+        }
+    )
+    return result['messages'][-1].content if 'messages' in result else "No response from action agent."
+
+
 
 class AssistantState(TypedDict, total=False):
     messages: list
