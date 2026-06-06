@@ -97,15 +97,18 @@ class GroqAgent:
 from langchain_groq import ChatGroq
 from API_TOOL import APIAGENT
 from PREBUILT import PrebuiltTools
-from tools import open_application
+from tools import AssistantTools
 import os
 from dotenv import load_dotenv
-# Load environment variables from .env file
-load_dotenv()
+# 1. Point load_dotenv to your custom file
+load_dotenv(dotenv_path="key.env")
 
-# Initialize the model (it automatically pulls GROQ_API_KEY from os.environ)
-llm_groq = ChatGroq(
-    model="llama-3.3-70b-versatile",
+# 2. Extract the key manually using os.getenv
+my_groq_key = os.getenv("GROQ_API_KEY")
+# Initialize the Groq LLM
+llm = ChatGroq(
+    model="llama-3.1-8b-instant",
+    api_key = my_groq_key,
     temperature=0.7
 )
 
@@ -179,7 +182,6 @@ groq_agent = create_agent(
     ],
     verbose=True
 )
-
 
 
 class AssistantState(TypedDict, total=False):
@@ -568,6 +570,60 @@ def detect_tool(message: str) -> Optional[Dict[str, Any]]:
 
     return None
 
+ACTIVE_THINK_SESSIONS: dict[str, bool] = {}
+
+def is_think_mode_active(session_id: str) -> bool:
+    return ACTIVE_THINK_SESSIONS.get(session_id, False)
+
+
+def set_think_mode(session_id: str, active: bool) -> None:
+    if active:
+        ACTIVE_THINK_SESSIONS[session_id] = True
+    else:
+        ACTIVE_THINK_SESSIONS.pop(session_id, None)
+
+
+def run_groq_think(query: str, session_id: str) -> str:
+    prompt = (
+        "You are Lofty Think Mode, a Groq-powered reasoning assistant. "
+        "Answer carefully, thinking step-by-step and offering helpful, interactive guidance. "
+        "When the user asks follow-up questions, keep the context and continue reasoning.")
+    history = safe_session_history(session_id)
+    if history:
+        history_lines = []
+        for item in history[-8:]:
+            role = item.get("role", "unknown")
+            history_lines.append(f"{role}: {item.get('content', '')}")
+        query = f"{query}\n\nSession history:\n{chr(10).join(history_lines)}"
+
+    messages = [SystemMessage(content=prompt), HumanMessage(content=query)]
+    try:
+        result = groq_agent.invoke({"messages": messages})
+        return result['messages'][-1].content if 'messages' in result else "No response from Groq think mode."
+    except Exception as exc:
+        return f"Groq think mode failed: {exc}"
+
+
+def handle_lofty_think_command(session_id: str, message: str) -> Optional[str]:
+    text = message.strip()
+    if not re.match(r"^lofty:think", text, re.I):
+        return None
+
+    remainder = text[len("lofty:think"):].strip()
+    if not remainder:
+        set_think_mode(session_id, True)
+        return (
+            "Think mode activated. Ask your follow-up questions and I will use Groq reasoning to help you. "
+            "Type 'lofty:think stop' to exit think mode."
+        )
+
+    if remainder.lower() in {"stop", "exit", "end", "done"}:
+        set_think_mode(session_id, False)
+        return "Think mode ended. Back to normal assistant mode."
+
+    set_think_mode(session_id, True)
+    return run_groq_think(remainder, session_id)
+
 import os
 import shutil
 import subprocess
@@ -642,6 +698,7 @@ def apply_shortcuts(message: str) -> Optional[str]:
     if lowered == "lofty:help":
         return (
             "Commands: lofty:help, lofty:assistant, lofty:new, lofty:history <id>, "
+            "lofty:think, lofty:think <question>, lofty:think stop, "
             "lofty:voice, lofty:speak on/off, lofty:theme midnight|crimson|neon, "
             "lofty:model mistral, lofty:open <app>, lofty:link <url>, lofty:search <query>, "
             "lofty:remember key = value"
@@ -675,6 +732,14 @@ def make_reply(session_id: str, message: str, model: str) -> tuple[str, Optional
     shortcut = apply_shortcuts(message)
     if shortcut is not None:
         return shortcut, None
+
+    think_result = handle_lofty_think_command(session_id, message)
+    if think_result is not None:
+        return think_result, None
+
+    if is_think_mode_active(session_id):
+        reply = run_groq_think(message, session_id)
+        return reply, None
 
     # Quick heuristic: if user says plain-language "open <app>" or "please open <app>
     # try opening the app directly as a fallback when the LLM doesn't call tools.
