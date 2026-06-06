@@ -127,6 +127,16 @@ action_agent = create_react_agent(llm_groq,action_tools,verbose=True)
 data_agent = create_react_agent(llm_groq,data_tools,verbose=True)
 
 @tool
+def run_api_agent(query:str) -> str:
+    """Run the API Agent to answer questions or perform tasks that require API calls."""
+    result = api_agent.invoke({
+        "messages":[HumanMessage(content=query)]
+
+    })
+    return result['messages'][-1].content if 'messages' in result else "No repsonse from API agent."
+
+
+@tool
 def run_knowledge_agent(query:str) -> str:
     """Run the knowledge agent to answer questions or retrieve information."""
     result = knowledge_agent.invoke(
