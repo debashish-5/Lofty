@@ -1041,17 +1041,37 @@
       }
 
       // send flow (local stub)
-      function doSend(){
-        const val = input.value && input.value.trim();
-        if (!val) return;
-        appendMessage(val, 'me');
-        input.value = '';
-        setTimeout(() => {
-          appendMessage('Thinking...');
-          setTimeout(() => {
-            appendMessage('Hi — I\'m Lofty. I can summarize repos, explain code, and run tools (locally). Try: "summarize this repo"');
-          }, 600);
-        }, 300);
+      async function doSend() {
+          const val = input.value.trim();
+          if (!val) return;
+
+          appendMessage(val, "me");
+          input.value = "";
+
+          appendMessage("Thinking...");
+
+          try {
+              const response = await fetch("/api/chat", {
+                  method: "POST",
+                  headers: {
+                      "Content-Type": "application/json"
+                  },
+                  body: JSON.stringify({
+                      session_id: "default-thread",
+                      message: val,
+                      model: "mistral"
+                  })
+              });
+
+              const data = await response.json();
+              messages.lastChild.remove();
+              appendMessage(data.reply || data.response || "No reply received.");
+
+          } catch (error) {
+              messages.lastChild.remove();
+              appendMessage("Error connecting to Lofty backend.");
+              console.error(error);
+          }
       }
 
       send.addEventListener('click', doSend);

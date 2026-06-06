@@ -3,7 +3,7 @@ Lofty Terminal Backend
 FastAPI backend for a terminal-style frontend.
 
 Routes
-- /       -> index.html
+- /       -> index_up.html
 - /about  -> about.html
 - /lofty  -> chatbot.html
 
@@ -43,8 +43,7 @@ import webbrowser
 from pathlib import Path
 from typing import Any, Dict, List, Optional, TypedDict
 
-import requests
-from fastapi import FastAPI, File, Form, HTTPException, UploadFile
+from fastapi import FastAPI, File, Form, HTTPException, Query, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
@@ -643,38 +642,51 @@ def health():
 @app.get("/", response_class=HTMLResponse)
 def index():
     try:
-        return FileResponse(str(safe_page("index2.html")))
+        return FileResponse(str(safe_page("index_up.html")))
     except Exception as exc:
-        return PlainTextResponse(f"index2.html not found: {exc}", status_code=404)
+        return PlainTextResponse(f"index_up.html not found: {exc}", status_code=404)
+
+@app.get("/index.html", response_class=HTMLResponse)
+def index_html_alias():
+    """Serve the upgraded index page when a browser requests /index.html."""
+    try:
+        return FileResponse(str(safe_page("index_up.html")))
+    except Exception as exc:
+        return PlainTextResponse(f"index_up.html not found: {exc}", status_code=404)
+
+
+@app.get("/index_up.html", response_class=HTMLResponse)
+def index_up_alias():
+    """Serve the upgraded index page for the explicit index_up.html path."""
+    try:
+        return FileResponse(str(safe_page("index_up.html")))
+    except Exception as exc:
+        return PlainTextResponse(f"index_up.html not found: {exc}", status_code=404)
 
 
 from FineQwenGen import FineQwenInference
-@app.route("/finechat", methods=["GET"])
-def chat():
-    try:
-        text = requests.json.get("text", "")
-        if not text:
-            return {"error": "No text provided."}, 400
-        # For demonstration, we'll just echo the text back with a prefix.
-        input_prompt = f"Input: {text}"
-        inference = FineQwenInference(input_prompt)
-        response = inference.fine_tuned_qwen_response()
-        return {"response": response}
-    except Exception as exc:
-        return {'error':str(exc)}, 500
-    
-
+from fastapi import FastAPI, HTTPException, Request
+@app.post("/chat")
+async def chat(request: Request):
+    body = await request.json()
+    message = body.get("message", "")
+    session_id = body.get("session_id", "default-thread")
+    model = body.get("model", OLLAMA_MODEL)
+    ChatResponse = FineQwenInference(message).fine_tuned_qwen_response()
+    if not message:
+        raise HTTPException(status_code=400, detail="Message cannot be empty.")
+    return {"session_id": session_id, "reply": ChatResponse, "model": model}
 
 
 
      
 
-@app.get("/home", response_class=HTMLResponse)
-def home():
-    try:
-        return FileResponse(str(safe_page("index2.html")))
-    except Exception as exc:
-        return PlainTextResponse(f"index2.html not found: {exc}", status_code=404)
+# @app.get("/home", response_class=HTMLResponse)
+# def home():
+#     try:
+#         return FileResponse(str(safe_page("index2.html")))
+#     except Exception as exc:
+#         return PlainTextResponse(f"index2.html not found: {exc}", status_code=404)
 
 
 @app.get("/about", response_class=HTMLResponse)
@@ -891,4 +903,9 @@ def on_startup():
 
 if __name__ == "__main__":
     import uvicorn  # type: ignore[import]
-    uvicorn.run("lofty_backend_enhanced:app", host="0.0.0.0", port=8000, reload=True)
+    # Run the FastAPI `app` defined in this file so executing this script
+    # directly starts the server and serves `templates/index_up.html`.
+    # Use 127.0.0.1 to ensure the browser open URL matches the default BROWSER_URL.
+    # When running the file directly we cannot use `reload=True` because
+    # uvicorn requires an import string for auto-reload. Run without reload.
+    uvicorn.run(app, host="127.0.0.1", port=8000, reload=False)
