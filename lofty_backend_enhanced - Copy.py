@@ -106,7 +106,7 @@ load_dotenv(dotenv_path="key.env")
 # 2. Extract the key manually using os.getenv
 my_groq_key = os.getenv("GROQ_API_KEY")
 # Initialize the Groq LLM
-llm = ChatGroq(
+llm_groq = ChatGroq(
     model="llama-3.1-8b-instant",
     api_key = my_groq_key,
     temperature=0.7
