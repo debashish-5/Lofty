@@ -495,6 +495,18 @@
           "content": " The current exchange rate for 1 USD to INR (Indian Rupees) as of March 23, 2023, is approximately 75.69 INR. However, exchange rates fluctuate frequently, so it's best to check a reliable currency converter for the most up-to-date rate."
         }
       ]
+    },
+    "SID-AU5NC0": {
+      "messages": [
+        {
+          "role": "user",
+          "content": "lofty:think what is the conversion rate of USD to INR"
+        },
+        {
+          "role": "assistant",
+          "content": " The current exchange rate for 1 USD to INR (Indian Rupees) as of March 23, 2023, is approximately 75.69 INR. However, exchange rates fluctuate frequently, so it's best to check a reliable currency converter for the most up-to-date rate."
+        }
+      ]
     }
   },
   "preferences": {}
