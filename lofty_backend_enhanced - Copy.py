@@ -584,6 +584,30 @@ def set_think_mode(session_id: str, active: bool) -> None:
 
 
 def run_groq_think(query: str, session_id: str) -> str:
+    # Explicit direct route for live currency conversion queries.
+    currency_match = re.search(r"\b([A-Za-z]{3})\s*(?:to|in)\s*([A-Za-z]{3})\b", query, re.I)
+    if currency_match:
+        base_currency = currency_match.group(1).upper()
+        target_currency = currency_match.group(2).upper()
+        conversion_tool = None
+        for tool_obj in api_tools:
+            if getattr(tool_obj, '__name__', '') == 'get_conversion_factor' or getattr(tool_obj, 'name', '') == 'get_conversion_factor':
+                conversion_tool = tool_obj
+                break
+        if conversion_tool:
+            try:
+                result = conversion_tool(base_currency, target_currency)
+                if isinstance(result, dict):
+                    rate = result.get('conversion_rate') or result.get('conversion_rate')
+                    if rate is not None:
+                        return f"Current rate: 1 {base_currency} = {rate} {target_currency}."
+                    if 'error' in result:
+                        return f"Currency lookup failed: {result['error']}"
+                    return f"Currency lookup returned: {result}"
+                return str(result)
+            except Exception as exc:
+                return f"Currency lookup failed: {exc}"
+
     prompt = (
         "You are Lofty Think Mode, a Groq-powered reasoning assistant. "
         "Answer carefully, thinking step-by-step and offering helpful, interactive guidance. "
@@ -604,7 +628,11 @@ def run_groq_think(query: str, session_id: str) -> str:
         return f"Groq think mode failed: {exc}"
 
 
-def handle_lofty_think_command(session_id: str, message: str) -> Optional[str]:
+def handle_lofty_think_command(session_id: str, message: str) -> Optional[Dict[str, Any]]:
+    """Handle the lofty:think command and return a dict with message and tool info.
+
+    Returns None if the message is not a lofty:think command.
+    """
     text = message.strip()
     if not re.match(r"^lofty:think", text, re.I):
         return None
@@ -612,17 +640,22 @@ def handle_lofty_think_command(session_id: str, message: str) -> Optional[str]:
     remainder = text[len("lofty:think"):].strip()
     if not remainder:
         set_think_mode(session_id, True)
-        return (
-            "Think mode activated. Ask your follow-up questions and I will use Groq reasoning to help you. "
-            "Type 'lofty:think stop' to exit think mode."
-        )
+        return {
+            "message": (
+                "Think mode activated. Ask your follow-up questions and I will use Groq reasoning to help you. "
+                "Type 'lofty:think stop' to exit think mode."
+            ),
+            "tool": {"type": "think", "active": True},
+        }
 
     if remainder.lower() in {"stop", "exit", "end", "done"}:
         set_think_mode(session_id, False)
-        return "Think mode ended. Back to normal assistant mode."
+        return {"message": "Think mode ended. Back to normal assistant mode.", "tool": {"type": "think", "active": False}}
 
+    # If a prompt follows, ensure think mode is active and run Groq reasoning
     set_think_mode(session_id, True)
-    return run_groq_think(remainder, session_id)
+    result = run_groq_think(remainder, session_id)
+    return {"message": result, "tool": {"type": "think", "active": True}}
 
 import os
 import shutil
@@ -735,11 +768,12 @@ def make_reply(session_id: str, message: str, model: str) -> tuple[str, Optional
 
     think_result = handle_lofty_think_command(session_id, message)
     if think_result is not None:
-        return think_result, None
+        # think_result is a dict {message: str, tool: dict}
+        return think_result.get("message", ""), think_result.get("tool")
 
     if is_think_mode_active(session_id):
         reply = run_groq_think(message, session_id)
-        return reply, None
+        return reply, {"type": "think", "active": True}
 
     # Quick heuristic: if user says plain-language "open <app>" or "please open <app>
     # try opening the app directly as a fallback when the LLM doesn't call tools.

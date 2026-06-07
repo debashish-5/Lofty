@@ -818,6 +818,7 @@
       if (normalizedCommandLower === 'lofty:help') {
         emitShellRowOutput(`<span class="accent">== LOFTY OS STRUCTURAL REGISTRY COMMANDS ==</span>`);
         emitShellRowOutput(`<span class="muted">lofty:help</span> <span class="dim">— Emits functional runtime instructions directory map.</span>`);
+        emitShellRowOutput(`<span class="muted">lofty:think</span> <span class="dim">— Emits functional runtime instructions directory map.</span>`);        
         emitShellRowOutput(`<span class="muted">lofty:assistant</span> <span class="dim">— Re-activates conversational assistant dashboard array matrices.</span>`);
         emitShellRowOutput(`<span class="muted">lofty:new</span> <span class="dim">— Flushes target interface structures for pristine operational shell frames.</span>`);
         emitShellRowOutput(`<span class="muted">lofty:voice</span> <span class="dim">— Toggles internal Speech Recognition API capture systems.</span>`);
@@ -969,7 +970,14 @@
         
         SYSTEM_STATE.ollamaBridgeConnected = true;
         const compiledSynthesisReply = responseDataPayload?.reply ? String(responseDataPayload.reply) : '// ERROR: Empty response matrices returned from target language node configuration.';
-        
+
+        // If the backend indicates think-mode activation, update UI state
+        if (responseDataPayload?.tool?.type === 'think') {
+          const active = !!responseDataPayload.tool.active;
+          SYSTEM_STATE.thinkModeActive = active;
+          emitShellRowOutput(`<span class="accent">Think Mode</span>: ${active ? 'ACTIVE' : 'INACTIVE'}`);
+        }
+
         emitShellRowOutput(`<span class="accent">Lofty Core Reasoner</span>: ${escapeHtmlEntities(compiledSynthesisReply)}`, 'bubble-ai-wrapper');
         triggerVocalSpeechSynthesis(compiledSynthesisReply);
         

@@ -20,9 +20,15 @@ class APIAGENT:
         @tool
         def get_conversion_factor(base_currency: str, target_currency: str) -> dict:
             """Get the conversion factor between two currencies."""
-            url = f'https://exchangerate-api.com{self.currency_key}/pair/{base_currency}/{target_currency}'
+            if not self.currency_key:
+                return {"error": "Missing currency API key."}
+            url = f'https://v6.exchangerate-api.com/v6/{self.currency_key}/pair/{base_currency}/{target_currency}'
             response = requests.get(url)
-            return response.json()
+            try:
+                response.raise_for_status()
+                return response.json()
+            except requests.RequestException as exc:
+                return {"error": f"Currency API request failed: {exc}", "status_code": response.status_code if response is not None else None}
 
         @tool
         def convert(base_currency_value: str, conversion_rate: Annotated[float, InjectedToolArg]) -> float:
@@ -165,7 +171,6 @@ class APIAGENT:
             locate_me,
             get_temperature,
             analyze_domain_host,
-            get_conversion_factor,
             define_technical_word,
             nasa_result,
             nasa_mars_weather
