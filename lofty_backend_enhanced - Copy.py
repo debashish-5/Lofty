@@ -48,7 +48,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
-
 try:
     from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, SystemMessage, ToolMessage
     from langchain_core.tools import tool
@@ -854,12 +853,76 @@ def index_up_alias():
 
 from FineQwenGen import FineQwenInference
 from fastapi import FastAPI, HTTPException, Request
+PAGES_ROUTES = {
+    "terminal":"/chatbot-upgrade",
+    "lofty":"/chatbot-upgrade",
+    "chatbot":"/chatbot-upgrade",
+    "about":"/about",
+    "feature":"/feature",
+    "source":"/source"
+}
+
+SESSIONS:Dict[str,List] = {}
+SYSTEM_PROMPT = """
+You are Lofty, a helpful AI assistant for a web app.
+
+You must do 3 things:
+1. Answer normally when the user asks a question.
+2. Ask a clarification when the user request is unclear.
+3. Use tools when the user wants to open or navigate to a page.
+
+Important:
+- If the user says "open terminal page", use the open_page tool.
+- If the user says only "open page", ask which page.
+- Available pages are:
+  terminal, lofty, chatbot, about, feature, source.
+- Do not invent pages.
+- Be natural and human-like.
+"""
+
+@tool
+def open_page(page_name:str) -> dict:
+    """Open user need pages.Use only valid name page."""
+    page = page_name.strip().lower()
+    if page not in PAGES_ROUTES:
+        return {
+            "type":"clarification",
+            "question":f"""Unknown page '{page}'.Choose one of: {",".join(PAGES_ROUTES.keys())}"""
+        }
+    return {
+        "type":"action",
+        "action":"open_page",
+        "target":page
+    }
+@tool
+def get_available_tools() -> list[str]:
+    """Return the list of pages available in lofty."""
+    return list(PAGES_ROUTES.keys())
+TOOLS = [open_page,get_available_tools]
+TOOLS_BY_NAMES = {t.name: t for t in TOOLS}
+
+#request schema
+class ChatReq(BaseModel):
+    session_id: Optional[str] = None
+    message:str
+
+def get_history(session_id:str) -> List:
+    if session_id not in SESSIONS:
+        SESSIONS[session_id] = []
+    return SESSIONS[session_id]
+
+from transformers import AutoTokenizer,AutoModelForCausalLM
+model = AutoModelForCausalLM.from_pretrained("qwen_lofty")
+tokenizer = AutoTokenizer.from_pretrained("qwen_lofty") 
+
+
+
 @app.post("/chat")
 async def chat(request: Request):
     body = await request.json()
     message = body.get("message", "")
     session_id = body.get("session_id", "default-thread")
-    model = body.get("model", OLLAMA_MODEL)
+    # model = body.get("model", OLLAMA_MODEL)
     ChatResponse = FineQwenInference(message).fine_tuned_qwen_response()
     if not message:
         raise HTTPException(status_code=400, detail="Message cannot be empty.")

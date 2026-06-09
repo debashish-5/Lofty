@@ -7,3 +7,4 @@ lofty_backend.py
 .env.local
 *.env
 key.env
+s.py
