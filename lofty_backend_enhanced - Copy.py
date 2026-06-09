@@ -125,10 +125,10 @@ data_tools = prebuilt.get_sql_tools("sqlite:///company.db")
 from langchain.agents import create_agent
 
 
-api_agent = create_agent(llm_groq,api_tools, verbose=True)
-knowledge_agent = create_agent(llm_groq,knowledge_tools, verbose=True)
-action_agent = create_agent(llm_groq,action_tools,verbose=True)
-data_agent = create_agent(llm_groq,data_tools,verbose=True)
+api_agent = create_agent(llm_groq, api_tools)
+knowledge_agent = create_agent(llm_groq, knowledge_tools)
+action_agent = create_agent(llm_groq, action_tools)
+data_agent = create_agent(llm_groq, data_tools)
 
 @tool
 def run_api_agent(query:str) -> str:
@@ -174,13 +174,12 @@ def run_action_agent(query:str) -> str:
 
 groq_agent = create_agent(
     model=llm_groq,
-    tools = [
+    tools=[
         run_api_agent,
         run_knowledge_agent,
         run_action_agent,
         run_data_agent
-    ],
-    verbose=True
+    ]
 )
 
 
@@ -591,14 +590,14 @@ def run_groq_think(query: str, session_id: str) -> str:
         target_currency = currency_match.group(2).upper()
         conversion_tool = None
         for tool_obj in api_tools:
-            if getattr(tool_obj, '__name__', '') == 'get_conversion_factor' or getattr(tool_obj, 'name', '') == 'get_conversion_factor':
-                conversion_tool = tool_obj
+            if getattr(tool_obj, 'name', None) == 'get_conversion_factor' or getattr(tool_obj, '__name__', '') == 'get_conversion_factor':
+                conversion_tool = getattr(tool_obj, 'func', tool_obj)
                 break
         if conversion_tool:
             try:
                 result = conversion_tool(base_currency, target_currency)
                 if isinstance(result, dict):
-                    rate = result.get('conversion_rate') or result.get('conversion_rate')
+                    rate = result.get('conversion_rate')
                     if rate is not None:
                         return f"Current rate: 1 {base_currency} = {rate} {target_currency}."
                     if 'error' in result:

@@ -12,7 +12,11 @@ from langchain_community.agent_toolkits import SQLDatabaseToolkit
 from langchain_community.vectorstores import FAISS
 from langchain_openai import OpenAIEmbeddings
 from langchain_groq import ChatGroq
-from langchain_google_community import GmailToolkit
+
+try:
+    from langchain_google_community import GmailToolkit
+except ImportError:
+    GmailToolkit = None
 
 load_dotenv()
 
@@ -83,6 +87,8 @@ class PrebuiltTools:
 
     def get_gmail_tools(self) -> List[BaseTool]:
         """Return Gmail tools from the Google community toolkit."""
+        if GmailToolkit is None:
+            return []
         toolkit = GmailToolkit()
         return toolkit.get_tools()
 
