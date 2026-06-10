@@ -912,8 +912,64 @@ def get_history(session_id:str) -> List:
     return SESSIONS[session_id]
 
 from transformers import AutoTokenizer,AutoModelForCausalLM
-model = AutoModelForCausalLM.from_pretrained("qwen_lofty")
-tokenizer = AutoTokenizer.from_pretrained("qwen_lofty") 
+
+def agent_run(session_id:str,user_message:str) -> dict:
+    history = get_history(session_id)
+    llm = AutoModelForCausalLM.from_pretrained("qwen_lofty")
+    tokenizer = AutoTokenizer.from_pretrained("qwen_lofty") 
+    llm_with_tools = llm.bind_tools(TOOLS)
+    messages = [SystemMessage(content=HumanMessage)]
+    messages.extend(history[-12:])
+    messages.append(HumanMessage(user_message))
+    for _ in range(5):
+        ai_msg = llm_with_tools.invoke(messages)
+        messages.append(ai_msg)
+        #if model did not call tool we treat as normal
+        if not getattr(ai_msg,"tool_calls",None):
+            answer = (ai_msg.content or "").strip()
+            if not answer:
+                answer = "I am not sure how answer that yet"
+            history.append(HumanMessage(content=user_message)))
+            history.append(ai_msg)
+            return {"type":"answer","message":answer}
+        #tool calls made by the model
+        for tool_call in ai_msg.tool_calls:
+            tool_name = tool_call["name"]
+            tool_args = tool_call.get('args',{})
+
+            if tool_name not in TOOLS_BY_NAMES:
+                continue
+            tool_obj = TOOLS_BY_NAMES[tool_name]
+            observation = tool_obj.invoke(tool_args)
+            #if tool says to open page,return immediatly
+            if isinstance(observation,dict) and observation.get("type") == "action":
+                history.append(HumanMessage(content=user_message))
+                history.append(ai_msg)
+                history.append(ToolMessage(content=json.dumps(observation),tool_call_id = tool_call['id']))
+                return observation
+                # If tool returns a clarification, return that immediately
+            if isinstance(observation, dict) and observation.get("type") == "clarification":
+                history.append(HumanMessage(content=user_message))
+                history.append(ai_msg)
+                history.append(ToolMessage(
+                    content=json.dumps(observation),
+                    tool_call_id=tool_call["id"]
+                ))
+                return observation
+
+            # Otherwise, feed tool result back into the loop
+            tool_msg = ToolMessage(
+                content=json.dumps(observation),
+                tool_call_id=tool_call["id"]
+            )
+            messages.append(tool_msg)
+
+    return {
+        "type": "clarification",
+        "question": "Could you clarify what you want me to do?"
+    }
+        
+
 
 
 
