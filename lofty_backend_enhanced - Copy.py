@@ -852,142 +852,131 @@ def index_up_alias():
 
 
 from FineQwenGen import FineQwenInference
-from fastapi import FastAPI, HTTPException, Request
+
 PAGES_ROUTES = {
-    "terminal":"/chatbot-upgrade",
-    "lofty":"/chatbot-upgrade",
-    "chatbot":"/chatbot-upgrade",
-    "about":"/about",
-    "feature":"/feature",
-    "source":"/source"
+    "terminal": "/chatbot-upgrade",
+    "lofty": "/chatbot-upgrade",
+    "chatbot": "/chatbot-upgrade",
+    "about": "/about",
+    "feature": "/feature",
+    "source": "/source",
 }
 
-SESSIONS:Dict[str,List] = {}
-SYSTEM_PROMPT = """
-You are Lofty, a helpful AI assistant for a web app.
+NAV_SESSIONS: Dict[str, List[Dict[str, str]]] = {}
 
-You must do 3 things:
-1. Answer normally when the user asks a question.
-2. Ask a clarification when the user request is unclear.
-3. Use tools when the user wants to open or navigate to a page.
 
-Important:
-- If the user says "open terminal page", use the open_page tool.
-- If the user says only "open page", ask which page.
-- Available pages are:
-  terminal, lofty, chatbot, about, feature, source.
-- Do not invent pages.
-- Be natural and human-like.
-"""
+class ChatReq(BaseModel):
+    session_id: Optional[str] = None
+    message: str
 
-@tool
-def open_page(page_name:str) -> dict:
-    """Open user need pages.Use only valid name page."""
+
+def _nav_history(session_id: str) -> List[Dict[str, str]]:
+    if session_id not in NAV_SESSIONS:
+        NAV_SESSIONS[session_id] = []
+    return NAV_SESSIONS[session_id]
+
+
+def open_page(page_name: str) -> dict:
     page = page_name.strip().lower()
     if page not in PAGES_ROUTES:
         return {
-            "type":"clarification",
-            "question":f"""Unknown page '{page}'.Choose one of: {",".join(PAGES_ROUTES.keys())}"""
+            "type": "clarification",
+            "question": f"Unknown page '{page}'. Choose one of: {', '.join(PAGES_ROUTES.keys())}",
         }
     return {
-        "type":"action",
-        "action":"open_page",
-        "target":page
+        "type": "action",
+        "action": "open_page",
+        "target": page,
+        "url": PAGES_ROUTES[page],
     }
-@tool
-def get_available_tools() -> list[str]:
-    """Return the list of pages available in lofty."""
+
+
+def get_available_pages() -> list[str]:
     return list(PAGES_ROUTES.keys())
-TOOLS = [open_page,get_available_tools]
-TOOLS_BY_NAMES = {t.name: t for t in TOOLS}
-
-#request schema
-class ChatReq(BaseModel):
-    session_id: Optional[str] = None
-    message:str
-
-def get_history(session_id:str) -> List:
-    if session_id not in SESSIONS:
-        SESSIONS[session_id] = []
-    return SESSIONS[session_id]
-
-from transformers import AutoTokenizer,AutoModelForCausalLM
-
-def agent_run(session_id:str,user_message:str) -> dict:
-    history = get_history(session_id)
-    llm = AutoModelForCausalLM.from_pretrained("qwen_lofty")
-    tokenizer = AutoTokenizer.from_pretrained("qwen_lofty") 
-    llm_with_tools = llm.bind_tools(TOOLS)
-    messages = [SystemMessage(content=HumanMessage)]
-    messages.extend(history[-12:])
-    messages.append(HumanMessage(user_message))
-    for _ in range(5):
-        ai_msg = llm_with_tools.invoke(messages)
-        messages.append(ai_msg)
-        #if model did not call tool we treat as normal
-        if not getattr(ai_msg,"tool_calls",None):
-            answer = (ai_msg.content or "").strip()
-            if not answer:
-                answer = "I am not sure how answer that yet"
-            history.append(HumanMessage(content=user_message)))
-            history.append(ai_msg)
-            return {"type":"answer","message":answer}
-        #tool calls made by the model
-        for tool_call in ai_msg.tool_calls:
-            tool_name = tool_call["name"]
-            tool_args = tool_call.get('args',{})
-
-            if tool_name not in TOOLS_BY_NAMES:
-                continue
-            tool_obj = TOOLS_BY_NAMES[tool_name]
-            observation = tool_obj.invoke(tool_args)
-            #if tool says to open page,return immediatly
-            if isinstance(observation,dict) and observation.get("type") == "action":
-                history.append(HumanMessage(content=user_message))
-                history.append(ai_msg)
-                history.append(ToolMessage(content=json.dumps(observation),tool_call_id = tool_call['id']))
-                return observation
-                # If tool returns a clarification, return that immediately
-            if isinstance(observation, dict) and observation.get("type") == "clarification":
-                history.append(HumanMessage(content=user_message))
-                history.append(ai_msg)
-                history.append(ToolMessage(
-                    content=json.dumps(observation),
-                    tool_call_id=tool_call["id"]
-                ))
-                return observation
-
-            # Otherwise, feed tool result back into the loop
-            tool_msg = ToolMessage(
-                content=json.dumps(observation),
-                tool_call_id=tool_call["id"]
-            )
-            messages.append(tool_msg)
-
-    return {
-        "type": "clarification",
-        "question": "Could you clarify what you want me to do?"
-    }
-   
-        
 
 
+def _clean_qwen_answer(raw: str, user_message: str) -> str:
+    text = (raw or "").strip()
+    for prefix in (f"Input: {user_message}", "Input:", user_message):
+        if text.startswith(prefix):
+            text = text[len(prefix):].strip()
+    return text or "I am not sure how to answer that yet."
+
+
+def _detect_page_intent(message: str) -> Optional[dict]:
+    text = message.strip()
+    lowered = text.lower()
+
+    if re.search(r"\b(?:which|what|available|list)\b.*\bpages?\b", lowered) or lowered in {
+        "pages",
+        "available pages",
+        "list pages",
+        "show pages",
+    }:
+        pages = ", ".join(get_available_pages())
+        return {"type": "answer", "message": f"Available pages: {pages}."}
+
+    if re.match(r"^(?:open|go to|navigate to|show|visit)\s+(?:the\s+)?page\s*$", lowered):
+        return {
+            "type": "clarification",
+            "question": f"Which page should I open? Choose one of: {', '.join(get_available_pages())}",
+        }
+
+    page_patterns = [
+        r"(?:open|go to|navigate to|show|visit)\s+(?:the\s+)?(?:page\s+)?(terminal|lofty|chatbot|about|feature|source)(?:\s+page)?\b",
+        r"(?:take me to|bring me to)\s+(?:the\s+)?(terminal|lofty|chatbot|about|feature|source)(?:\s+page)?\b",
+    ]
+    for pattern in page_patterns:
+        match = re.search(pattern, lowered)
+        if match:
+            return open_page(match.group(1))
+
+    return None
+
+
+def agent_run(session_id: str, user_message: str) -> dict:
+    history = _nav_history(session_id)
+    user_message = user_message.strip()
+    if not user_message:
+        return {"type": "clarification", "question": "What would you like me to do?"}
+
+    tool_result = _detect_page_intent(user_message)
+    if tool_result is not None:
+        history.append({"role": "user", "content": user_message})
+        if tool_result.get("type") == "answer":
+            history.append({"role": "assistant", "content": tool_result["message"]})
+        else:
+            payload = tool_result.get("question") or tool_result.get("target") or ""
+            history.append({"role": "assistant", "content": str(payload)})
+        return tool_result
+
+    try:
+        inference = FineQwenInference(user_message)
+        raw_answer = inference.fine_tuned_qwen_response()
+        answer = _clean_qwen_answer(raw_answer, user_message)
+    except Exception as exc:
+        answer = f"I could not reach the Lofty model right now: {exc}"
+
+    history.append({"role": "user", "content": user_message})
+    history.append({"role": "assistant", "content": answer})
+    if len(history) > 24:
+        del history[:-24]
+
+    return {"type": "answer", "message": answer}
 
 
 @app.post("/chat")
-async def chat(request: Request):
-    body = await request.json()
-    message = body.get("message", "")
-    session_id = body.get("session_id", "default-thread")
-    # model = body.get("model", OLLAMA_MODEL)
-    ChatResponse = FineQwenInference(message).fine_tuned_qwen_response()
+async def chat(request: ChatReq):
+    message = (request.message or "").strip()
     if not message:
         raise HTTPException(status_code=400, detail="Message cannot be empty.")
-    return {"session_id": session_id, "reply": ChatResponse, "model": model}
 
+    session_id = (request.session_id or "").strip() or "default-thread"
+    try:
+        return agent_run(session_id=session_id, user_message=message)
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
 
-
-     
 
 # @app.get("/home", response_class=HTMLResponse)
 # def home():
@@ -1010,6 +999,15 @@ def feature():
         return FileResponse(str(safe_page("feature.html")))
     except Exception as exc:
         return PlainTextResponse(f"feature.html not found: {exc}",status_code=404)
+
+
+@app.get("/source", response_class=HTMLResponse)
+def source():
+    try:
+        return FileResponse(str(safe_page("open_source.html")))
+    except Exception as exc:
+        return PlainTextResponse(f"open_source.html not found: {exc}", status_code=404)
+
 
 @app.get("/lofty", response_class=HTMLResponse)
 def lofty():

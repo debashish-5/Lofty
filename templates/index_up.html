@@ -698,71 +698,6 @@
       </div>
     </div>
 
-<script>
-    const sessionId = crypto.randomUUID();
-
-    const PAGE_ROUTES = {
-      terminal: "/terminal",
-      dashboard: "/dashboard",
-      settings: "/settings",
-      profile: "/profile",
-      help: "/help",
-      chatbot: "/chatbot",
-      analytics: "/analytics",
-      crop_disease: "/crop-disease"
-    };
-
-    function addMessage(text, who = "bot") {
-      const chat = document.getElementById("chat");
-      const div = document.createElement("div");
-      div.className = `msg ${who}`;
-      div.textContent = text;
-      chat.appendChild(div);
-      chat.scrollTop = chat.scrollHeight;
-    }
-
-    async function sendMessage() {
-      const input = document.getElementById("userInput");
-      const message = input.value.trim();
-      if (!message) return;
-
-      addMessage(message, "user");
-      input.value = "";
-
-      const res = await fetch("/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          session_id: sessionId,
-          message: message
-        })
-      });
-
-      const data = await res.json();
-
-      if (data.type === "answer") {
-        addMessage(data.message, "bot");
-      } else if (data.type === "clarification") {
-        addMessage(data.question, "bot");
-      } else if (data.type === "action") {
-        const route = PAGE_ROUTES[data.target];
-        if (route) {
-          addMessage("Opening " + data.target + " page...", "bot");
-          window.location.href = route;
-        } else {
-          addMessage("That page is not available.", "bot");
-        }
-      } else {
-        addMessage("Unexpected response.", "bot");
-      }
-    }
-
-    document.getElementById("userInput").addEventListener("keydown", function(e) {
-      if (e.key === "Enter") sendMessage();
-    });
-
-    addMessage("Hello, I am Lofty. Ask me anything or tell me to open a page.", "bot");
-  </script>
   <script>
     // 1. BOOT SEQUENCE LOGIC
     window.addEventListener('load', () => {
@@ -1029,6 +964,16 @@
     // Lofty chat widget behavior
     // ----------------------------
     (function(){
+      const sessionId = crypto.randomUUID();
+      const PAGE_ROUTES = {
+        terminal: "/chatbot-upgrade",
+        lofty: "/chatbot-upgrade",
+        chatbot: "/chatbot-upgrade",
+        about: "/about",
+        feature: "/feature",
+        source: "/source"
+      };
+
       const bubble = document.getElementById('lofty-bubble');
       const mini = document.getElementById('lofty-mini');
       const panel = document.getElementById('lofty-panel');
@@ -1105,40 +1050,55 @@
         messages.scrollTop = messages.scrollHeight;
       }
 
-      // send flow (local stub)
-      async function doSend() {
-          const val = input.value.trim();
-          if (!val) return;
-
-          appendMessage(val, "me");
-          input.value = "";
-
-          appendMessage("Thinking...");
-
-          try {
-              const response = await fetch("/api/chat", {
-                  method: "POST",
-                  headers: {
-                      "Content-Type": "application/json"
-                  },
-                  body: JSON.stringify({
-                      session_id: "default-thread",
-                      message: val,
-                      model: "mistral"
-                  })
-              });
-
-              const data = await response.json();
-              messages.lastChild.remove();
-              appendMessage(data.reply || data.response || "No reply received.");
-
-          } catch (error) {
-              messages.lastChild.remove();
-              appendMessage("Error connecting to Lofty backend.");
-              console.error(error);
+      async function handleChatResponse(data) {
+        if (data.type === "answer") {
+          appendMessage(data.message);
+        } else if (data.type === "clarification") {
+          appendMessage(data.question);
+        } else if (data.type === "action") {
+          const route = data.url || PAGE_ROUTES[data.target];
+          if (route) {
+            appendMessage("Opening " + data.target + " page...");
+            window.location.href = route;
+          } else {
+            appendMessage("That page is not available.");
           }
+        } else if (data.detail) {
+          appendMessage(String(data.detail));
+        } else {
+          appendMessage("Unexpected response from Lofty.");
+        }
       }
 
+      async function doSend() {
+        const val = input.value.trim();
+        if (!val) return;
+
+        appendMessage(val, "me");
+        input.value = "";
+        appendMessage("Thinking...");
+
+        try {
+          const response = await fetch("/chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              session_id: sessionId,
+              message: val
+            })
+          });
+
+          const data = await response.json();
+          messages.lastChild.remove();
+          await handleChatResponse(data);
+        } catch (error) {
+          messages.lastChild.remove();
+          appendMessage("Error connecting to Lofty backend.");
+          console.error(error);
+        }
+      }
+
+      appendMessage("Hello, I am Lofty. Ask me anything or tell me to open a page.");
       send.addEventListener('click', doSend);
       input.addEventListener('keydown', (e)=>{ if(e.key === 'Enter'){ e.preventDefault(); doSend(); } });
     })();
