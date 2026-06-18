@@ -126,8 +126,14 @@
       width: 45px; height: 45px; border-radius: 8px; background: var(--accent);
       display: grid; place-items: center; color: #000; font-weight: 900; font-family: 'Fira Code', monospace; font-size: 1.2rem;
     }
+    .brand-mark img {
+      width: 100%; height: 100%; object-fit: cover; border-radius: 8px;
+    }
     .brand-text h1 { margin: 0; font-size: 1.2rem; letter-spacing: 0.15em; font-weight: 900; }
     .brand-text p { margin: 2px 0 0; color: var(--accent); font-size: 0.75rem; font-family: 'Fira Code', monospace; }
+    .lofty-avatar img {
+      width: 100%; height: 100%; object-fit: cover; border-radius: 10px; display: block;
+    }
 
     .nav-links { display: flex; gap: 30px; }
     .nav-links a {
@@ -368,11 +374,11 @@
 
   <div class="relative-z">
     <nav class="nav" id="navbar">
-      <a href="#" class="brand interactive">
-        <div class="brand-mark">V4</div>
+      <a href="/index_up.html" class="brand interactive">
+        <div class="brand-mark"><img src="/static/assets/mina-samurai.webp" alt="Lofty logo" /></div>
         <div class="brand-text">
           <h1>LOFTY</h1>
-          <p>CYBER-YELLOW KERNEL</p>
+          <p href = "https://en.wikipedia.org/wiki/Omnipotence">∞ OMNINEURAL</p>
         </div>
       </a>
       <div class="nav-links">
@@ -666,15 +672,14 @@
     <!-- LOFTY CHAT WIDGET -->
     <div id="lofty-widget" aria-hidden="false">
       <div id="lofty-bubble" class="lofty-bubble">
-        <div class="lofty-avatar">im</div>
+        <div class="lofty-avatar"><img src="/static/assets/mina-modern.webp" alt="Lofty assistant avatar" /></div>
         <div>
           <div style="font-weight:900;color:var(--accent);">Hi, I am Lofty</div>
           <div style="color:var(--muted);font-size:0.85rem;margin-top:4px;">Your assistant — click to chat</div>
         </div>
       </div>
-      <div id="lofty-mini" class="lofty-mini" title="Open Lofty" data-img="">
-        <img id="lofty-mini-img" src="" alt="Lofty" style="display:none;" />
-        <div id="lofty-mini-letter" style="font-size:1.1rem;">L</div>
+      <div id="lofty-mini" class="lofty-mini" title="Open Lofty">
+        <img id="lofty-mini-img" src="/static/assets/mina-modern.webp" alt="Lofty" />
       </div>
 
       <div id="lofty-panel" class="lofty-chat-panel" role="dialog" aria-label="Lofty chat panel">

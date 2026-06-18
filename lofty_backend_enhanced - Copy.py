@@ -126,7 +126,7 @@ from langchain.agents import create_agent
 
 api_agent = create_agent(llm_groq, api_tools)
 knowledge_agent = create_agent(llm_groq, knowledge_tools)
-action_agent = create_agent(llm_groq, action_tools)
+action_agent = create_agent(llm_groq, action_tools) if action_tools else None
 data_agent = create_agent(llm_groq, data_tools)
 
 @tool
@@ -154,16 +154,19 @@ def run_knowledge_agent(query:str) -> str:
             "messages": [HumanMessage(content=query)]
         }
     )
-    return result['message'][-1].content if 'message' in result else "No response from knowledge agent."
+    return result['messages'][-1].content if 'messages' in result else "No response from knowledge agent."
 
 @tool
 def run_action_agent(query:str) -> str:
-    """Run the action agent to perform task like:
+    """Run the action agent to perform tasks like:
     - sending emails
     - reading notifications
     - managing calendar events
     - other productivity tasks.
     """
+    if action_agent is None:
+        return "Gmail action tools are unavailable. Please configure Gmail credentials or disable Gmail integration."
+
     result = action_agent.invoke(
         {
             "messages":[HumanMessage(content=query)]
