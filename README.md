@@ -1,49 +1,48 @@
-# Lofty Terminal — Local-First AI Assistant
+# Lofty Terminal — Advanced Agentic AI Reasoning System
 
-![Lofty Banner](assets/banner.jpg)
+![Lofty Banner](assets/mina-samurai.webp)
 
 [![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=for-the-badge\&logo=python\&logoColor=white)](https://www.python.org/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-Local%20API-009688?style=for-the-badge\&logo=fastapi\&logoColor=white)](https://fastapi.tiangolo.com/)
-[![Ollama](https://img.shields.io/badge/Ollama-Local%20LLM-000000?style=for-the-badge)](https://ollama.com/)
-[![LangGraph](https://img.shields.io/badge/LangGraph-Agent%20Workflow-111827?style=for-the-badge)](https://langchain-ai.github.io/langgraph/)
-[![LangChain](https://img.shields.io/badge/LangChain-Model%20Orchestration-1C3C3C?style=for-the-badge)](https://python.langchain.com/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-Sovereign%20Backend-009688?style=for-the-badge\&logo=fastapi\&logoColor=white)](https://fastapi.tiangolo.com/)
+[![Groq](https://img.shields.io/badge/Groq-Inference%20Engine-00D9FF?style=for-the-badge)](https://groq.com/)
+[![LangGraph](https://img.shields.io/badge/LangGraph-Agentic%20Orchestration-111827?style=for-the-badge)](https://langchain-ai.github.io/langgraph/)
+[![LangChain](https://img.shields.io/badge/LangChain-Composable%20AI-1C3C3C?style=for-the-badge)](https://python.langchain.com/)
+[![Qwen](https://img.shields.io/badge/Qwen-Fine--Tuned%20Models-FF6B00?style=for-the-badge)]()
 [![Windows](https://img.shields.io/badge/Windows-Desktop%20Ready-0078D4?style=for-the-badge\&logo=windows\&logoColor=white)](https://www.microsoft.com/windows)
 [![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](LICENSE)
 [![Status](https://img.shields.io/badge/Status-Active%20Development-2E7D32?style=for-the-badge)]()
-[![Mode](https://img.shields.io/badge/Mode-Local--First-111111?style=for-the-badge)]()
-[![Privacy](https://img.shields.io/badge/Privacy-Private%20by%20Design-5D4037?style=for-the-badge)]()
-[![UI](https://img.shields.io/badge/UI-Terminal%20Style-424242?style=for-the-badge)]()
-[![Voice](https://img.shields.io/badge/Voice-Optional%20Pipeline-8E24AA?style=for-the-badge)]()
-[![Memory](https://img.shields.io/badge/Memory-JSON%20Backed-3949AB?style=for-the-badge)]()
-[![Automation](https://img.shields.io/badge/Automation-Tool%20Aware-00897B?style=for-the-badge)]()
-[![Desktop](https://img.shields.io/badge/Desktop-Agent%20Ready-1565C0?style=for-the-badge)]()
+[![Mode](https://img.shields.io/badge/Mode-Hybrid%20Local%2BCloud-111111?style=for-the-badge)]()
+[![Privacy](https://img.shields.io/badge/Privacy-Data--Aware%20Design-5D4037?style=for-the-badge)]()
+[![UI](https://img.shields.io/badge/UI-Cinematic%20HUD-D4FF00?style=for-the-badge)]()
+[![Voice](https://img.shields.io/badge/Voice-Full%20Pipeline-8E24AA?style=for-the-badge)]()
+[![Memory](https://img.shields.io/badge/Memory-Semantic%20Persistent-3949AB?style=for-the-badge)]()
+[![Tools](https://img.shields.io/badge/Tools-Advanced%20Ecosystem-00897B?style=for-the-badge)]()
+[![ML](https://img.shields.io/badge/ML-Integrated%20Models-FF6B35?style=for-the-badge)]()
 
-**Lofty** is a local-first AI assistant built to feel fast, private, and highly usable. It combines a FastAPI backend, a cinematic terminal-style web UI, a tool-aware agent flow, optional voice input, and local memory to create a complete assistant system that runs on your machine.
+**Lofty** is an advanced agentic AI reasoning system built on a sovereign FastAPI backend with multi-modal capabilities. It combines Groq-powered inference, LangGraph orchestration, fine-tuned Qwen models, integrated ML pipelines, voice I/O, web search, database operations, and a cinematic terminal-inspired HUD interface into a complete cognitive platform.
 
-It is designed as a polished product and a strong developer portfolio project.
+Engineered as a production-grade assistant showcasing modern AI architecture, advanced tool integration, and sophisticated reasoning workflows—built for portfolio excellence and real-world productivity.
 
-Access the upgraded browser UI at `/chatbot-upgrade` once the server is running.
+Access the cinematic UI at `/`, the about page at `/about`, the feature showcase at `/feature`, and the open-source documentation at `/open-source`. Multiple HTML templates provide specialized interfaces for different cognitive modes.
 
 ---
 
 ## Project Summary
 
-Lofty is a practical desktop-style assistant with a strong developer focus. It can chat, call tools, manage files, open applications, and support optional speech-to-text and text-to-speech. The interface is intentionally minimal and terminal-inspired, while the backend remains modular and easy to extend.
+Lofty is a sophisticated, production-grade desktop AI assistant engineered with expert-level architecture. It represents a complete cognitive platform that blends multiple inference strategies, advanced tool orchestration, and seamless user interaction into one cohesive system.
 
-This project is designed for real productivity use, not just demo interaction. The assistant can be connected to local models through Ollama, and the tool graph can safely execute approved host actions such as app launching, file operations, browser actions, and memory-based personalization.
+The project demonstrates:
 
-Lofty is also a showcase of modern AI app design:
+* **Hybrid Inference Strategy**: Groq-powered cloud inference (Llama, Mistral) paired with fine-tuned local Qwen models for optimal speed and accuracy
+* **Intelligent Tool Ecosystem**: Web search via DuckDuckGo/Tavily, SQL database operations, Gmail integration, FAISS retrieval, and custom ML prediction tools
+* **Advanced Agent Orchestration**: LangGraph state machines for complex multi-step reasoning and tool routing
+* **Sophisticated Memory System**: Semantic-aware JSON persistence with session context and user preferences
+* **Multi-Modal I/O**: Voice transcription (faster-whisper), text-to-speech synthesis, and full HTML/CSS/JavaScript frontend
+* **Cinematic UI Design**: Terminal-inspired HUD with multiple presentation modes (index_up.html, about_upgrade.html, open_source.html)
+* **Production Safety**: Workspace restrictions, confirmation gating, credential management, and graceful error handling
+* **Extensible Architecture**: Modular backend structure ready for RAG, vector databases, and advanced ML workflows
 
-* local inference
-* tool calling
-* workflow graphs
-* session memory
-* voice interaction
-* browser-based desktop UI
-* safe action execution
-* modular backend structure
-* readable frontend messaging
-* product-style presentation
+This is not a simple chatbot wrapper. It's a complete reasoning system designed to handle real productivity workflows with professional-grade safety and reliability.
 
 ---
 
@@ -155,49 +154,56 @@ Use these badges to show the project level and technical progress:
 
 ## Technology Stack
 
-### Backend
+### Backend Core
 
-* Python
-* FastAPI
-* Uvicorn
-* LangChain
-* LangGraph
-* Ollama
-* Pydantic
-* Requests
+* **Python 3.10+** - Modern async/await patterns
+* **FastAPI** - High-performance REST API with automatic OpenAPI docs
+* **Uvicorn** - ASGI server for production deployment
+* **Pydantic** - Data validation and settings management
 
-### Voice
+### AI/ML Stack
 
-* faster-whisper
-* pyttsx3
-* sounddevice
-* numpy
-* scipy
+* **LangChain** - Framework for model binding and tool orchestration
+* **LangGraph** - State machine-based agent orchestration with checkpoint persistence
+* **Groq API** - High-speed inference engine (Llama 3.1, Mistral, etc.)
+* **ChatOllama** - Local model support fallback
+* **Qwen Fine-Tuned Models** - Custom-trained models in `qwen_lofty/` with adapter configs
 
-### UI
+### Integrated Tools & Toolkits
 
-* HTML
-* CSS
-* JavaScript
-* Terminal-inspired frontend layout
-* Badge-driven presentation
-* Card-based UI elements
+* **Web Search**: Tavily API + DuckDuckGo search integration
+* **Database**: SQLAlchemy toolkit for structured data operations
+* **Gmail Integration**: LangChain GoogleMail toolkit (conditional, error-safe)
+* **Vector Retrieval**: FAISS vector store with OpenAI embeddings for RAG
+* **ML/Predictions**: scikit-learn (RandomForest, LinearRegression) for inference
 
-### Storage
+### Voice & Audio
 
-* JSON memory file
-* Workspace-scoped file operations
-* Optional artifact directories
-* Optional future vector store integration
+* **faster-whisper** - Fast, accurate speech-to-text (base/small/medium models)
+* **pyttsx3** - Offline text-to-speech synthesis
+* **sounddevice** - Cross-platform audio recording
+* **NumPy/SciPy** - Audio signal processing
 
-### Agent Layer
+### UI/Frontend
 
-* LangGraph nodes
-* Tool calls
-* Confirmation routing
-* Session memory
-* Response routing
-* Safety gating
+* **HTML5** - Semantic markup with accessibility
+* **CSS3** - Cinematic animations, flexbox/grid layouts, dark terminal aesthetic
+* **JavaScript (Vanilla)** - No framework dependencies; event-driven UI updates
+* **Terminal-Inspired Design** - HUD overlays, neon accents, CRT effects
+
+### Storage & Persistence
+
+* **JSON** - Lightweight session memory and preferences (lofty_memory.json)
+* **File I/O** - Workspace-scoped file operations with safety checks
+* **Checkpoint System** - LangGraph memory saver for agent state
+
+### Dependencies (See requirements_lofty_backend.txt)
+
+* fastapi, uvicorn[standard]
+* langchain-core, langgraph, langchain-ollama
+* faster-whisper, pyttsx3
+* requests, python-multipart
+* pydantic
 
 ---
 
