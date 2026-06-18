@@ -87,10 +87,13 @@ class PrebuiltTools:
 
     def get_gmail_tools(self) -> List[BaseTool]:
         """Return Gmail tools from the Google community toolkit."""
-        if GmailToolkit is None:
-            return []
-        toolkit = GmailToolkit()
-        return toolkit.get_tools()
+        try:
+            if GmailToolkit is None:
+                return []
+            toolkit = GmailToolkit()
+            return toolkit.get_tools()
+        except Exception as e:
+            return f"Error: in PREBUILT.PY .{e}"
 
     def custom_picture_tool(self) -> BaseTool:
         """Placeholder for your custom image/picture tool."""

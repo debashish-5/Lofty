@@ -989,14 +989,14 @@ async def chat(request: ChatReq):
 @app.get("/about", response_class=HTMLResponse)
 def about():
     try:
-        return FileResponse(str(safe_page("about.html")))
+        return FileResponse(str(safe_page("about_upgrade.html")))
     except Exception as exc:
         return PlainTextResponse(f"about.html not found: {exc}", status_code=404)
 
 @app.get("/feature",response_class = HTMLResponse)
 def feature():
     try:
-        return FileResponse(str(safe_page("feature.html")))
+        return FileResponse(str(safe_page("feature_upgrade.html")))
     except Exception as exc:
         return PlainTextResponse(f"feature.html not found: {exc}",status_code=404)
 

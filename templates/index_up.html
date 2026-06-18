@@ -48,7 +48,7 @@
        CUSTOM CURSOR PHYSICS
        ========================================= */
     #cursor-dot {
-      position: fixed; top: 0; left: 0; width: 6px; height: 6px;
+      position: fixed; top: 17px; left: 16px; width: 6px; height: 6px;
       background: var(--accent); border-radius: 50%;
       transform: translate(-50%, -50%); z-index: 10000; pointer-events: none;
       box-shadow: 0 0 10px var(--accent);
@@ -60,7 +60,7 @@
       transition: width 0.2s var(--transition-smooth), height 0.2s var(--transition-smooth), background 0.2s ease, border-color 0.2s;
     }
     .hovering-link #cursor-ring {
-      width: 80px; height: 80px; background: var(--accent-dim); border-color: transparent; backdrop-filter: blur(2px);
+      left: -20px; top: -19px;width: 80px; height: 80px; background: var(--accent-dim); border-color: transparent; backdrop-filter: blur(2px);
     }
 
     /* =========================================
@@ -376,9 +376,9 @@
         </div>
       </a>
       <div class="nav-links">
-        <a href="#console" class="interactive">Console</a>
-        <a href="#architecture" class="interactive">Architecture</a>
-        <a href="#docs" class="interactive">Documentation</a>
+        <a href="/about" class="interactive">About</a>
+        <a href="/feature" class="interactive">Architecture</a>
+        <a href="/source" class="interactive">Documentation</a>
       </div>
       <button class="nav-cta interactive">Init Sequence</button>
     </nav>
@@ -666,7 +666,7 @@
     <!-- LOFTY CHAT WIDGET -->
     <div id="lofty-widget" aria-hidden="false">
       <div id="lofty-bubble" class="lofty-bubble">
-        <div class="lofty-avatar">🤖</div>
+        <div class="lofty-avatar">im</div>
         <div>
           <div style="font-weight:900;color:var(--accent);">Hi, I am Lofty</div>
           <div style="color:var(--muted);font-size:0.85rem;margin-top:4px;">Your assistant — click to chat</div>
@@ -679,7 +679,8 @@
 
       <div id="lofty-panel" class="lofty-chat-panel" role="dialog" aria-label="Lofty chat panel">
         <div class="lofty-chat-header">
-          <div class="lofty-avatar">🤖</div>
+          <div class="lofty-avatar">
+            <img src="static/assets/mina-modern.webp" alt="Webcam Capture" width="50px" height="48px"></div>
           <div>
             <div class="lofty-chat-title">Lofty</div>
             <div style="font-size:0.75rem;color:var(--muted);">How can I help you today?</div>
