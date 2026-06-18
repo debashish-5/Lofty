@@ -80,8 +80,20 @@
         .nav-links a:hover { color: var(--text-primary); }
 
         /* --- HERO SECTION --- */
-        .hero { min-height: 100vh; display: flex; align-items: center; padding-top: 5rem; }
-        .hero-content { max-width: 1000px; }
+        .hero { min-height: calc(100vh - 5rem); display: flex; align-items: stretch; padding-top: 5rem; gap: 3rem; }
+        .hero-content { flex: 1 1 50%; max-width: 640px; display: flex; flex-direction: column; justify-content: center; min-height: 100%; }
+        .hero-media { flex: 1 1 50%; display: grid; place-items: center; min-height: 100%; background: transparent; }
+        .hero-media img {
+            width: 100%;
+            height: 100%;
+            max-width: 100%;
+            max-height: 100%;
+            border-radius: 24px;
+            border: none;
+            background: transparent;
+            box-shadow: none;
+            object-fit: cover;
+        }
         .badge {
             display: inline-block; padding: 0.4rem 1rem; border: 1px solid var(--border-subtle);
             border-radius: 100px; font-family: 'Fira Code', monospace; font-size: 0.75rem;
@@ -218,6 +230,9 @@
                     <a href="#" class="btn btn-primary hover-target">Initialize Agent</a>
                     <a href="https://github.com/debashish-5/Lofty" class="btn btn-outline hover-target">View Repository</a>
                 </div>
+            </div>
+            <div class="hero-media reveal">
+                <img src="/static/assets/mina-samurai.webp" alt="Lofty hero visual" />
             </div>
         </section>
 
